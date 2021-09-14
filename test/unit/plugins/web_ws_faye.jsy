@@ -1,0 +1,95 @@
+import { expect } from '../_setup.jsy'
+import { testChannelConnection } from './_chan_tests.jsy'
+import {common_ws_setup, add_websocket} from './web_ws_common.jsy'
+
+const FayeWebSocket = require('faye-websocket')
+
+
+export function test_websockets_faye(use_cbor, grp_name) ::
+  describe @ grp_name, @::
+    var faye_ws_test_api, faye_wss_test_api
+    before @::>
+      faye_ws_test_api = await faye_ws_setup(use_cbor, false)
+      faye_wss_test_api = await faye_ws_setup(use_cbor, true)
+
+    it @ 'hub.web.connectWS is a channel for ws://', @::>
+      await testChannelConnection @:
+        __proto__: faye_ws_test_api()
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('ws://')
+          let ws = new U8FayeWebSocketClient @ this.conn_url
+          return hub_b.web.connectWS(ws)
+
+    it @ 'hub.web.connectWS is a channel for wss://', @::>
+      await testChannelConnection @:
+        __proto__: faye_wss_test_api()
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('wss://')
+          let ws = new U8FayeWebSocketClient @ this.conn_url, [], @{} ca: this.ca
+          return hub_b.web.connectWS(ws)
+
+    it @ 'hub.connect("ws://127.0.0.1:«port»") is a channel', @::>
+      await testChannelConnection @:
+        __proto__: faye_ws_test_api()
+
+        init_b(hub) ::
+          hub.web.createWS = url => ::
+            let ws = new U8FayeWebSocketClient @ url+''
+            return ws
+
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('ws://')
+          return hub_b.web.connectWS(this.conn_url)
+
+    it @ 'hub.connect("wss://127.0.0.1:«port»") is a channel', @::>
+      await testChannelConnection @:
+        __proto__: faye_wss_test_api()
+
+        init_b(hub) ::
+          hub.web.createWS = url => ::
+            let ws = new U8FayeWebSocketClient @ url+'', [], @{} ca: this.ca
+            return ws
+
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('wss://')
+          return hub_b.connect(this.conn_url)
+
+    it @ 'hub.connect("ws://127.0.0.1:«port»") is a channel using custom WebSocket', @::>
+      await testChannelConnection @:
+        __proto__: faye_ws_test_api()
+
+        init_b(hub) ::
+          hub.web.WebSocket = U8FayeWebSocketClient
+
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('ws://')
+          return hub_b.web.connectWS(this.conn_url)
+
+
+async function faye_ws_setup(use_cbor, tls_opt) ::
+  return common_ws_setup @ use_cbor, tls_opt, (server, hub_a, test_api) => ::
+    server.on @ 'upgrade', async (req, sock, body) => ::
+      if FayeWebSocket.isWebSocket(req) ::
+        let ws = _adapt_faye_ws @
+          new FayeWebSocket(req, sock, body)
+
+        test_api.ws_cleanup.push @ ws
+        test_api.done = test_api.done.then @=>
+          add_websocket(hub_a, ws)
+
+
+function _adapt_faye_ws(ws) ::
+  // Faye websockets does not accomodate Uint8Array as raw send
+  let _send = ws.send.bind(ws)
+  ws.send = msg => _send @
+    msg instanceof Buffer ? msg
+      : msg === typeof 'string' ? msg
+      : Buffer.from(msg)
+  return ws
+
+class U8FayeWebSocketClient extends FayeWebSocket.Client ::
+  constructor(...args) ::
+    super(...args)
+    _adapt_faye_ws(this)
+
+

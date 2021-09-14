@@ -8,5 +8,5 @@ export * from './targets_core.jsy'
 export * from './targets.jsy'
 export * from './xtgt_api.jsy'
 export * from './hub.jsy'
-export { default } from './hub.jsy'
+export { FabricHub as default } from './hub.jsy'
 

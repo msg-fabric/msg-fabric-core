@@ -1,17 +1,16 @@
-import bind_codec from '../../code/codec.jsy'
+import {bind_codec} from '../../code/codec.jsy'
 
-export default stream_codec_plugin
 export function stream_codec_plugin({ name, encode, decode }={}) ::
   return hub => ::
     if null == encode && encode === decode ::
       const { decode_utf8 } = hub.data_utils
 
       name = 'JSON'
-      encode = JSON.stringify
+      encode = pkt => JSON.stringify(pkt)
       decode = data => JSON.parse @
         'string' === typeof data
           ? data : decode_utf8 @ data
 
-    hub._root_.stream_codec = bind_codec @
-      name, encode, decode
+    hub._root_.stream_codec =
+      bind_codec @ name, encode, decode
 

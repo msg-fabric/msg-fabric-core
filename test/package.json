@@ -4,7 +4,7 @@
     "msg-fabric-core": "file:.."
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^19.0.1",
+    "@rollup/plugin-commonjs": "^20.0.0",
     "@rollup/plugin-node-resolve": "^13.0.2",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
@@ -13,8 +13,9 @@
     "jsy-node": "^1.6.5",
     "mocha": "^9.0.2",
     "rollup": "^2.53.3",
+    "rollup-plugin-dgnotify": "^0.1.7",
     "sinon": "^11.1.1",
-    "ws": "^7.5.3"
+    "ws": "^8.2.2"
   },
   "scripts": {
     "prebuild": "test -d ./node_modules || npm ci",

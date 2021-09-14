@@ -1,7 +1,5 @@
-export default websocket_api
-export function websocket_api(hub, plugin_options) ::
-  const { _global_ } = hub.data_utils
 
+export function websocket_api(hub, plugin_options) ::
   return @{}
     connectWS(ws_or_wss_url, channel_id) ::
       const websock = ws_or_wss_url.send ? ws_or_wss_url
@@ -44,6 +42,6 @@ export function websocket_api(hub, plugin_options) ::
 
     WebSocket: plugin_options.WebSocket
     createWS(ws_or_wss_url) ::
-      const WebSocket = this.WebSocket || _global_.WebSocket
-      return new WebSocket @ ws_or_wss_url+'', plugin_options.protocols
+      let _WebSocket = this.WebSocket || WebSocket
+      return new _WebSocket @ ws_or_wss_url+'', plugin_options.protocols
 

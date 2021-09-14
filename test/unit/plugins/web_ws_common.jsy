@@ -1,0 +1,67 @@
+import { expect } from '../_setup.jsy'
+
+const http = require('http')
+const https = require('https')
+
+const { generate: generateEC } = require('ec-pem')
+const { createSelfSignedCertificate } = require('ec-pem/cert')
+
+
+export async function add_websocket(hub_a, ws) ::
+  const p_chan = hub_a.web.connectWS(ws)
+  expect(p_chan).to.be.a('promise')
+  await expect(p_chan).to.be.fulfilled
+
+  const chan = await p_chan
+  expect(chan.peer_info).to.be.a('promise')
+  await expect(chan.peer_info).to.be.fulfilled
+
+  const peer_info = await chan.peer_info
+  expect(peer_info).to.have.property('routes')
+  expect(peer_info.routes).to.have.lengthOf(1)
+  expect(peer_info.routes[0]).to.be.oneOf @# '$one$', '$two$'
+
+  return chan
+
+
+export async function common_ws_setup(use_cbor, tls_opt, init_websocket_lib) ::
+  if true === tls_opt ::
+    tls_opt = await createSelfSignedCertificate @
+      'localhost', @{} altNames: @[] 'localhost', '127.0.0.1'
+      generateEC('prime256v1')
+
+  return () => @:
+    sleep: 2
+    done: Promise.resolve()
+    use_cbor
+
+    async init_a(hub_a) ::
+      const svr = tls_opt
+        ? https.createServer(tls_opt)
+        : http.createServer()
+      svr.unref()
+      if tls_opt :: this.ca = [tls_opt.cert]
+
+      Object.defineProperties @ this, @{} svr_a: {value: svr}
+      await init_websocket_lib(svr, hub_a, this)
+
+      const listen_opts = Object.assign @ {}
+        tls_opt, @{} port: 0, host: '127.0.0.1'
+
+      this.conn_url = await new Promise @ (resolve, reject) => ::
+        svr.once @ 'error', reject
+        svr.listen @ listen_opts, () => ::
+          const {address, port} = svr.address()
+          resolve @ `${tls_opt ? 'wss' : 'ws'}://${address}:${port}`
+
+    channel(chan) ::
+      expect(chan.when_opened).to.be.a('promise')
+      expect(chan.when_closed).to.be.a('promise')
+
+    ws_cleanup: []
+    async after() ::
+      this.svr_a.unref().close()
+      for const ws of this.ws_cleanup ::
+        ws.close()
+
+

@@ -1,5 +1,5 @@
 import { o_assign, o_defprop, is_func, as_func } from './builtins.jsy'
-import data_utils from './data_utils.jsy'
+import { data_utils } from './data_utils.jsy'
 
 const _discover_cache = new WeakMap()
 export function discoverFirst(host, lstFns, query) ::

@@ -1,21 +1,10 @@
-import bind_codec from '../../code/codec.jsy'
+import { bind_codec } from '../../code/codec.jsy'
 import { cbor_encode, cbor_decode } from 'cbor-codec/esm/index.mjs'
 
-export default cbor_codec_plugin
-
-#IF PLAT_NODEJS
-  export function cbor_codec_plugin() ::
-    // NodeJS platform expects Buffer instances for raw transfer
-    const _encode = pvec =>
-      Buffer.from @ cbor_encode @ pvec
-
-    return hub => ::
-      hub._root_.stream_codec = bind_codec @
-        'CBOR', _encode, cbor_decode
-
-#ELSE
-  export function cbor_codec_plugin() ::
-    return hub => ::
-      hub._root_.stream_codec = bind_codec @
-        'CBOR', cbor_encode, cbor_decode
+export function cbor_codec_plugin() ::
+  return hub => ::
+    hub._root_.stream_codec =
+      bind_codec @ 'CBOR',
+        pvec => cbor_encode(pvec)
+        u8 => cbor_decode(u8)
 

@@ -1,1 +1,1 @@
-export { default } from './direct.jsy'
+export { direct_plugin, direct_plugin as default } from './direct.jsy'

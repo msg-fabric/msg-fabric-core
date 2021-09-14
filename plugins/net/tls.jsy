@@ -1,7 +1,8 @@
 import { createServer as _tls_server, connect as _tls_connect } from 'tls'
-import net_common from './_net_common.jsy'
+import {net_common} from './_net_common.jsy'
 
-export default function tls_plugin(plugin_options={}) ::
+export default tls_plugin
+export function tls_plugin(plugin_options={}) ::
   const protocol = plugin_options.protocol || 'tls'
 
   return hub => ::

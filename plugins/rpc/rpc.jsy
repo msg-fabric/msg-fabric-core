@@ -1,7 +1,6 @@
 import { bind_rpc_client } from './rpc_client.jsy'
 import { bind_rpc_api_dispatch } from './rpc_api.jsy'
 
-export default rpc_plugin
 export function rpc_plugin() ::
 
   const dispatch_parallel = @\ binder ::

@@ -1,4 +1,4 @@
-export default web_basic_api
+
 export function web_basic_api(hub, plugin_options) ::
   const yes = @=> true
 

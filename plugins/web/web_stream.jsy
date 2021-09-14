@@ -1,4 +1,4 @@
-export default web_stream_api
+
 export function web_stream_api(hub, plugin_options) ::
   return @{}
     connectStream(tgt, options) ::

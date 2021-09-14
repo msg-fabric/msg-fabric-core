@@ -1,6 +1,7 @@
-import web_basic_api from './web.jsy'
+import { web_basic_api } from './web.jsy'
 
-export default function web_plugin(plugin_options={}) ::
+export default web_basic_plugin
+export function web_basic_plugin(plugin_options={}) ::
   return hub => ::
     hub.web = web_basic_api @ hub, plugin_options
 

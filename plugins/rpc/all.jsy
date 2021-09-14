@@ -1,1 +1,2 @@
 export * from './rpc.jsy'
+export { rpc_plugin as default } from './rpc.jsy'

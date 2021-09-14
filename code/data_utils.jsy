@@ -1,73 +1,31 @@
-import { o_defprop } from './builtins.jsy'
-
 export const data_utils = @{}
-  parse_url
-  random, random_base64,
   decode_utf8, encode_utf8
+  random_base64,
 
-export default data_utils
+
+export function decode_utf8(u8) ::
+  return new TextDecoder().decode(u8)
+
+export function encode_utf8(str) ::
+  return new TextEncoder().encode(str)
 
 
 #IF PLAT_NODEJS
-  const { URL } = require('url')
-  const { randomBytes } = require('crypto')
-
-  o_defprop @ data_utils, @{}
-    _global_: {value: global}
-
+  const { randomBytes, randomFillSync } = require('crypto')
 
   export function random(n) ::
-    return randomBytes(n)
+    return randomFillSync(new Uint8Array(n))
 
   export function random_base64(n) ::
     return randomBytes(n).toString('base64')
 
-  export function parse_url(url) ::
-    return new URL(url)
-
-  export function decode_utf8(u8) ::
-    return Buffer.from(u8).toString('utf-8')
-
-  export function encode_utf8(str) ::
-    return Buffer.from(str, 'utf-8')
-
-
 
 #IF PLAT_WEB
-
-  const _global_ = @
-      'undefined' !== typeof window ? window
-    : 'undefined' !== typeof self ? self
-    : 'undefined' !== typeof global ? global
-    : {}
-
-  o_defprop @ data_utils, @{}
-    _global_: {value: _global_}
-
+  import {u8_to_base64} from 'u8-utils/esm/web/base64.js'
 
   export function random(n) ::
-    const ua = new Uint8Array(n)
-    _global_.crypto.getRandomValues(ua)
-    return ua
+    return crypto.getRandomValues(new Uint8Array(n))
 
   export function random_base64(n) ::
-    const ua = new Uint8Array(n)
-    _global_.crypto.getRandomValues(ua)
-
-    let res=''
-    const _fromCharCode = String.fromCharCode
-    for let i=0; i<n; i++ ::
-      res += _fromCharCode(ua[i])
-    return _global_.btoa(res)
-
-  export function parse_url(url) ::
-    return new URL(url)
-
-  export function decode_utf8(u8) ::
-    if undefined === u8.byteLength ::
-      throw new Error @ 'Expected TypedArray'
-    return new TextDecoder().decode(u8.buffer)
-
-  export function encode_utf8(str) ::
-    return new TextEncoder().encode(str)
+    return u8_to_base64 @ random(n)
 

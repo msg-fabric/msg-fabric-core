@@ -45,5 +45,3 @@ export class TargetRouter extends DiscoveryBase ::
 
   addReply(...args) :: return this.xresp().untilReply(...args)
 
-export default TargetRouter
-

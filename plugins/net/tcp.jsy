@@ -1,7 +1,8 @@
 import { createServer as _tcp_server, createConnection as _tcp_connect } from 'net'
-import net_common from './_net_common.jsy'
+import {net_common} from './_net_common.jsy'
 
-export default function tcp_plugin(plugin_options={}) ::
+export default tcp_plugin
+export function tcp_plugin(plugin_options={}) ::
   const protocol = plugin_options.protocol || 'tcp'
 
   return hub => ::

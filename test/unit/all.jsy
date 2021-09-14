@@ -40,32 +40,33 @@ describe @ 'General Plugins', function() ::
   import test_pi_net_direct from './plugins/net_direct.jsy'
   import test_pi_net_tcp from './plugins/net_tcp.jsy'
   import test_pi_net_tls from './plugins/net_tls.jsy'
-  import { test_websockets_faye, test_websockets_ws } from './plugins/web_node.jsy'
+  import { test_websockets_faye } from './plugins/web_ws_faye.jsy'
+  import { test_websockets_ws } from './plugins/web_ws_wslib.jsy'
 
   describe @ 'NodeJS Plugins', function() ::
     this.slow(500)
 
-    describe @ 'net with JSON', @=> ::
+    describe @ 'net with JSON', @::
       describe @ 'hub.direct_stream', @=> test_pi_net_direct(false)
       describe @ 'hub.tcp', @=> test_pi_net_tcp(false)
       describe @ 'hub.tls', @=> test_pi_net_tls(false)
 
-    describe @ 'web with JSON (node side)', @=> ::
-      describe @ 'using "faye-websockets" WebSocket library', @=> ::
-        test_websockets_faye(false)
+    describe @ 'web with JSON (node side)', @::
+      test_websockets_faye @ false,
+        'using "faye-websockets" WebSocket library'
 
-      describe @ 'using "ws" WebSocket library', @=> ::
-        test_websockets_ws(false)
+      test_websockets_ws @ false,
+        'using "ws" WebSocket library'
 
-    describe @ 'net with CBOR', @=> ::
+    describe @ 'net with CBOR', @::
       describe @ 'hub.direct_stream', @=> test_pi_net_direct(true)
       describe @ 'hub.tcp', @=> test_pi_net_tcp(true)
       describe @ 'hub.tls', @=> test_pi_net_tls(true)
 
-    describe @ 'web with CBOR (node side)', @=> ::
-      describe @ 'using "faye-websockets" WebSocket library', @=> ::
-        test_websockets_faye(true)
+    describe @ 'web with CBOR (node side)', @::
+      test_websockets_faye @ true,
+        'using "faye-websockets" WebSocket library'
 
-      describe @ 'using "ws" WebSocket library', @=> ::
-        test_websockets_ws(true)
+      test_websockets_ws @ true,
+        'using "ws" WebSocket library'
 

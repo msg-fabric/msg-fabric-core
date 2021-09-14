@@ -1,0 +1,76 @@
+import { expect } from '../_setup.jsy'
+import { testChannelConnection } from './_chan_tests.jsy'
+import {common_ws_setup, add_websocket} from './web_ws_common.jsy'
+
+const WSWebSocket = require('ws')
+
+
+export function test_websockets_ws(use_cbor, grp_name) ::
+  describe @ grp_name, @::
+    var ws_test_api, wss_test_api
+    before @::>
+      ws_test_api = await wslib_ws_setup(use_cbor, false)
+      wss_test_api = await wslib_ws_setup(use_cbor, true)
+
+    it @ 'hub.web.connectWS is a channel for ws://', @::>
+      await testChannelConnection @:
+        __proto__: ws_test_api()
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('ws://')
+          const ws = new WSWebSocket @ this.conn_url
+          return hub_b.web.connectWS(ws)
+
+    it @ 'hub.web.connectWS is a channel for wss://', @::>
+      await testChannelConnection @:
+        __proto__: wss_test_api()
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('wss://')
+          const ws = new WSWebSocket @ this.conn_url, [], @{} ca: this.ca
+          return hub_b.web.connectWS(ws)
+
+    it @ 'hub.connect("ws://127.0.0.1:«port»") is a channel', @::>
+      await testChannelConnection @:
+        __proto__: ws_test_api()
+
+        init_b(hub) ::
+          hub.web.createWS = url =>
+            new WSWebSocket @ url+''
+
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('ws://')
+          return hub_b.web.connectWS(this.conn_url)
+
+    it @ 'hub.connect("wss://127.0.0.1:«port»") is a channel', @::>
+      await testChannelConnection @:
+        __proto__: wss_test_api()
+
+        init_b(hub) ::
+          hub.web.createWS = url =>
+            new WSWebSocket @ url+'', [], @{} ca: this.ca
+
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('wss://')
+          return hub_b.connect(this.conn_url)
+
+
+    it @ 'hub.connect("ws://127.0.0.1:«port»") is a channel using a custom WebSocket', @::>
+      await testChannelConnection @:
+        __proto__: ws_test_api()
+
+        init_b(hub) ::
+          hub.web.WebSocket = WSWebSocket
+
+        connect(hub_a, hub_b) ::
+          expect(this.conn_url).to.be.a('string').to.have.string('ws://')
+          return hub_b.web.connectWS(this.conn_url)
+
+
+async function wslib_ws_setup(use_cbor, tls_opt) ::
+  return common_ws_setup @ use_cbor, tls_opt, (server, hub_a, test_api) => ::
+    const wss = new WSWebSocket.Server @: server
+    wss.on @ 'connection', (ws, req) => ::
+      test_api.ws_cleanup.push @ ws
+      test_api.done = test_api.done.then @=>
+        add_websocket(hub_a, ws)
+
+

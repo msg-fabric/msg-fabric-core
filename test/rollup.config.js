@@ -1,21 +1,19 @@
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_commonjs from '@rollup/plugin-commonjs'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from 'rollup-plugin-jsy-lite'
 
-
-const sourcemap = 'inline'
-const test_plugins = [
+const _rpis_ = (defines, ...args) => [
+  rpi_jsy({defines}),
   rpi_resolve({ module: true, main: true }),
   rpi_commonjs({ include: 'node_modules/**'}),
-]
+  ...args,
+  rpi_dgnotify()]
 
-const test_plugins_nodejs = [
-  rpi_jsy({defines: {PLAT_NODEJS: true}})
-].concat(test_plugins)
+const sourcemap = 'inline'
 
-const test_plugins_web = [
-  rpi_jsy({defines: {PLAT_WEB: true}})
-].concat(test_plugins)
+const test_plugins_nodejs = _rpis_({PLAT_NODEJS: true})
+const test_plugins_web = _rpis_({PLAT_WEB: true})
 
 export default [
 

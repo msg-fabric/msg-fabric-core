@@ -1,4 +1,4 @@
-import FabricHub from './hub.jsy'
+import { FabricHub } from './hub.jsy'
 import { default as stanard } from '../plugins/standard/index.jsy'
 import { default as direct } from '../plugins/direct/index.jsy'
 import { default as web } from '../plugins/web/index.jsy'

@@ -1,6 +1,5 @@
 import { is_array } from './builtins.jsy'
 
-export default bind_codec
 export function bind_codec(name, pktlst_encode, pktlst_decode) ::
   // For use with `codec_channel` of 'code/channel.jsy'
 
@@ -9,31 +8,31 @@ export function bind_codec(name, pktlst_encode, pktlst_decode) ::
 
   const cache = new WeakMap()
   return @{}
-    __proto__: null, name: 'Unknown', cache,
+    __proto__: null, name: name || 'Unknown', cache,
 
     encode(pkt) ::
       let pkt_data = cache.get(pkt)
       if undefined === pkt_data ::
+        let id_route, id_target, meta, body
         if is_array(pkt) ::
-          let [ id_route, id_target, meta, body ] = pkt
           if 3 === pkt.length ::
-            body = meta; meta = null
-
-          pkt_data = pktlst_encode @#
-            id_route, id_target, meta, body
+            ([ id_route, id_target, body ] = pkt);
+          else 
+            ([ id_route, id_target, meta, body ] = pkt);
 
         else ::
-          let { 0: id_route, 1: id_target, meta, body } = pkt
-          pkt_data = pktlst_encode @#
-            id_route, id_target, meta, body
+          ({ 0: id_route, 1: id_target, meta, body } = pkt);
+
+        pkt_data = pktlst_encode @#
+          id_route, id_target, meta, body
 
         cache.set(pkt, pkt_data)
       return pkt_data
 
     decode(pkt_data) ::
-      const pkt_vec = pktlst_decode @ pkt_data
-      const [id_route, id_target, meta, body] = pkt_vec
-      const pkt = @{} 0: id_route, 1: id_target, meta, body
+      let pkt_vec = pktlst_decode(pkt_data)
+      let [id_route, id_target, meta, body] = pkt_vec
+      let pkt = {0: id_route, 1: id_target, meta, body}
       cache.set(pkt, pkt_data)
       return pkt
 

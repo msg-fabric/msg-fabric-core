@@ -1,4 +1,5 @@
 import rpi_resolve from '@rollup/plugin-node-resolve'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from 'rollup-plugin-jsy-lite'
 
 import pkg from './package.json'
@@ -7,16 +8,20 @@ const pkg_name = pkg.name.replace(/-/g, '_')
 const configs = []
 export default configs
 
-const sourcemap = true
 
-const plugins_base = [ rpi_resolve({ modulesOnly: true }) ]
-const plugins_generic = [ rpi_jsy() ].concat(plugins_base)
-const plugins_nodejs = [ rpi_jsy({defines: {PLAT_NODEJS: true}}) ].concat(plugins_base)
-const plugins_web = [ rpi_jsy({defines: {PLAT_WEB: true}}) ].concat(plugins_base)
+const _rpis_ = (defines, ...args) => [
+  rpi_jsy({defines}),
+  rpi_resolve({ modulesOnly: true }),
+  ...args,
+  rpi_dgnotify()]
 
-import { terser as rpi_terser } from 'rollup-plugin-terser'
-const min_plugins = true
-const plugins_min = plugins_web.concat([ rpi_terser({}) ])
+const plugins_nodejs = _rpis_({PLAT_NODEJS: true})
+const plugins_web = _rpis_({PLAT_WEB: true})
+
+//import { terser as rpi_terser } from 'rollup-plugin-terser'
+//const min_plugins = true
+//const plugins_min = plugins_web.concat([ rpi_terser({}) ])
+const min_plugins = null
 
 
 add_core_jsy('all', null, {exports: 'auto'})
@@ -90,8 +95,8 @@ function _add_jsy(src_root, src_name, out_name, inc_min, {module_name, plat_node
       plugins: plugins_nodejs, external: external_nodejs,
       output: [
         null !== inc_min &&
-          { file: `cjs/${out_name}.js`, format: 'cjs', exports, sourcemap },
-        { file: `esm/${out_name}.js`, format: 'es', sourcemap },
+          { file: `cjs/${out_name}.js`, format: 'cjs', exports, sourcemap: true },
+        { file: `esm/${out_name}.js`, format: 'es', sourcemap: true },
       ].filter(Boolean)})
 
   if (plat_web && plugins_web)
@@ -100,8 +105,8 @@ function _add_jsy(src_root, src_name, out_name, inc_min, {module_name, plat_node
       plugins: plugins_web, external: external_web,
       output: [
         null !== inc_min &&
-          { file: `umd/${out_name}${inc_min ? '.dbg' : ''}.js`, format: 'umd', name:module_name, exports, sourcemap },
-        { file: `esm/web/${out_name}.js`, format: 'es', sourcemap },
+          { file: `umd/${out_name}${inc_min ? '.dbg' : ''}.js`, format: 'umd', name:module_name, exports, sourcemap: true },
+        { file: `esm/web/${out_name}.js`, format: 'es', sourcemap: true },
       ].filter(Boolean)})
 
   if (plat_web && inc_min && 'undefined' !== typeof plugins_min)

@@ -78,5 +78,3 @@ export class FabricRouter extends DiscoveryBase ::
 o_assign @ FabricRouter.prototype, channel_kinds, @{}
   upstream_opt: @{} ms_ttl: 60000
   
-export default FabricRouter
-

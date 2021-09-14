@@ -1,8 +1,8 @@
 import { o_assign, o_create, o_freeze, as_func } from './builtins.jsy'
-import { random_base64, parse_url, data_utils } from './data_utils.jsy'
+import { random_base64, data_utils } from './data_utils.jsy'
 
-import FabricRouter_Base from './router.jsy'
-import TargetRouter_Base from './targets.jsy'
+import { FabricRouter } from './router.jsy'
+import { TargetRouter } from './targets.jsy'
 
 import { applyPlugins, cmpPlugins } from './utils.jsy'
 
@@ -65,7 +65,7 @@ export class FabricHub ::
 
   connect(conn_url) ::
     if ! conn_url.protocol ::
-      conn_url = parse_url @
+      conn_url = new URL @
         conn_url.asURL ? conn_url.asURL() : ''+conn_url
 
     const connect = this._url_protos[conn_url.protocol]
@@ -131,7 +131,6 @@ o_assign @ FabricHub.prototype, @{}
 
 o_assign @ FabricHub, @{}
   _plugins_: o_freeze([])
-  FabricRouter: FabricRouter_Base
-  TargetRouter: TargetRouter_Base
+  FabricRouter
+  TargetRouter
 
-export default FabricHub

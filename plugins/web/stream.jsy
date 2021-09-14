@@ -1,7 +1,8 @@
-import web_basic_api from './web.jsy'
-import web_stream_api from './web_stream.jsy'
+import { web_basic_api } from './web.jsy'
+import { web_stream_api } from './web_stream.jsy'
 
-export default function web_plugin(plugin_options={}) ::
+export default web_stream_plugin
+export function web_stream_plugin(plugin_options={}) ::
   // websocket extends basic, and is thus the superset
   return hub => ::
     hub.web = Object.assign @

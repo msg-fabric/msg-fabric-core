@@ -1,4 +1,4 @@
-export default function direct_plugin(plugin_options={}) ::
+export function direct_plugin(plugin_options={}) ::
   return hub => ::
     hub.direct = @{}
       connect(peer, channel_id) ::

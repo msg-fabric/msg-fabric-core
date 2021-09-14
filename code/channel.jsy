@@ -9,6 +9,7 @@ export const base_channel = @{}
   channel_id: null
 
   toJSON() :: throw new Error @ 'Not serializable'
+  to_cbor_encode() :: throw new Error @ 'Not serializable'
 
   undeliverable(pkt, mode) ::
     const {0: id_route, 1: id_target} = pkt
@@ -99,61 +100,41 @@ export function codec_channel(p2p, dispatch, {encode, decode}) ::
 
 
 
-#IF PLAT_NODEJS
-  // use V8's serialize & deserialize for Structured Clone
-  const { serialize, deserialize } = require('v8')
+// use MessageChannel for Structured Clone
+export function local_channel() ::
+  const { port1, port2 } = new MessageChannel()
+  port2.onmessage = on_msg
 
-  export function local_channel() ::
-    const [recv, channel] = this.raw_channel @ null, deserialize, @{}
-      is_local: true, addRoute: null,
-      dispatch: this.dispatch,
-      send: async (...args) =>
-        recv @ await serialize @ as_send_pkt @ args
-      send_pkt: async pkt =>
-        recv @ await serialize @ pkt
+  const map = new Map()
+  let q=[], pkt_id=1
 
-    return channel
+  const [recv, channel] = this.raw_channel @ null, null, @{}
+    is_local: true, addRoute: null
+    dispatch: this.dispatch,
+    send, send_pkt,
 
-    async function unpack(pkt_data) ::
-      try :: return deserialize(pkt_data)
-      catch err :: channel.on_send_error @ err
+  return channel
 
-#ELSE
-  // use MessageChannel for Structured Clone
-  export function local_channel() ::
-    const { port1, port2 } = new MessageChannel()
-    port2.onmessage = on_msg
+  function send(...args) ::
+    return send_pkt @ as_send_pkt(args)
 
-    const map = new Map()
-    let q=[], pkt_id=1
+  function send_pkt(pkt) ::
+    return new Promise @ (... p_args) => ::
+      let id = q.pop() || pkt_id++
+      map.set @ id, p_args
+      port1.postMessage @# id, pkt
 
-    const [recv, channel] = this.raw_channel @ null, null, @{}
-      is_local: true, addRoute: null
-      dispatch: this.dispatch,
-      send, send_pkt,
+  function on_msg(evt) ::
+    let [id, pkt] = evt.data
+    let [resolve, reject] = map.get(id)
+    map.delete(id)
+    q.push(id) // reuse id to avoid GC thrash
 
-    return channel
+    let res
+    try :: res = recv @ pkt
+    catch err ::
+      channel.on_send_error @ err
+      return reject(err)
 
-    function send(...args) ::
-      return send_pkt @ as_send_pkt @ args
-
-    function send_pkt(pkt) ::
-      return new Promise @ (... p_args) => ::
-        const id = q.pop() || pkt_id++
-        map.set @ id, p_args
-        port1.postMessage @# id, pkt
-
-    function on_msg(evt) ::
-      const [id, pkt] = evt.data
-      const [resolve, reject] = map.get(id)
-      map.delete(id)
-      q.push(id) // reuse id to avoid GC thrash
-
-      let res
-      try :: res = recv @ pkt
-      catch err ::
-        channel.on_send_error @ err
-        return reject(err)
-
-      return resolve(res)
+    return resolve(res)
 

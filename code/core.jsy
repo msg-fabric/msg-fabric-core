@@ -1,2 +1,2 @@
-export { default } from './hub.jsy'
+export { FabricHub as default } from './hub.jsy'
 

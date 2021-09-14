@@ -1,1 +1,1 @@
-export { default } from './cbor_codec.jsy'
+export { cbor_codec_plugin as default } from './cbor_codec.jsy'

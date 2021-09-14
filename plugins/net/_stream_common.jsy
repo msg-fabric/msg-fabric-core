@@ -1,11 +1,10 @@
-import bind_sendPacketStream from './_stream_send.jsy'
-import bind_recvPacketStream from './_stream_recv.jsy'
+import {bind_sendPacketStream} from './_stream_send.jsy'
+import {bind_recvPacketStream} from './_stream_recv.jsy'
 
 export * from './_stream_send.jsy'
 export * from './_stream_recv.jsy'
 
 
-export default stream_common
 export function stream_common(hub) ::
   return @{}
     __proto__: null

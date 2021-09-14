@@ -1,7 +1,8 @@
 import {PassThrough} from 'stream'
-import stream_common from './_stream_common.jsy'
+import {stream_common} from './_stream_common.jsy'
 
-export default function direct_stream_plugin(plugin_options={}) ::
+export default direct_stream_plugin
+export function direct_stream_plugin(plugin_options={}) ::
   return hub => ::
     const api = @{}
       connect(peer) ::

@@ -1,6 +1,6 @@
-import stream_common from './_stream_common.jsy'
+import {stream_common} from './_stream_common.jsy'
 
-export default function net_common(hub, plugin, protocol, asURL) ::
+export function net_common(hub, plugin, protocol, asURL) ::
   var _common_
   if null == asURL ::
     const path_prefix = {'.':'/', '/':''}
