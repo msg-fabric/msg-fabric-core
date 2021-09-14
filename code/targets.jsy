@@ -1,5 +1,5 @@
 import { o_assign, o_create  } from './builtins.jsy'
-import { DiscoveryBase } from './utils.jsy'
+import { DiscoveryBase } from './discovery.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'
 
 export class TargetRouter extends DiscoveryBase ::

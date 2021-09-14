@@ -1,0 +1,72 @@
+import { o_assign, o_defprop, is_func, as_func } from './builtins.jsy'
+
+const _discover_cache = new WeakMap()
+export function discoverFirst(host, lstFns, query) ::
+  let cache_belt = _discover_cache.get(lstFns)
+  if undefined === cache_belt ::
+    cache_belt = host._discoveryCache()
+    _discover_cache.set(lstFns, cache_belt)
+
+  const key = query.key
+  for const cache of cache_belt ::
+    const p = cache[key]
+    if undefined !== p ::
+      return p
+
+  const p = _discoverFirst(host, lstFns, query)
+  cache_belt[0][key] = p
+  return p
+
+function _discoverFirst(host, lstFns, query) ::
+  let p_search
+  return p_search = new Promise @ async resolve => ::
+    await null
+    o_assign @ query, @{} host, p_search, done: false
+
+    const done = e => ::
+      query.done = true
+      resolve @ e && true !== e ? e : null
+
+    const resolveFirst = async fn_discover => ::
+      const e = await fn_discover(query)
+      if undefined !== e :: done(e)
+
+    host._discoveryTimeout(done)
+    try ::
+      for const p of Array.from @ lstFns, resolveFirst ::
+        await p
+
+      done(null)
+    catch err ::
+      host._on_error('discovery', err)
+
+
+const discoveryTest = @{}
+  'function': accept => accept
+  'string': accept => q => q.key.startsWith(accept)
+  'object'(accept) ::
+    if is_func @ accept.test ::
+      return q => accept.test(q.key)
+
+
+export class DiscoveryBase ::
+  constructor() ::
+    this.discovery = (this.discovery || []).slice()
+
+  addDiscovery(accept, fn_discover) ::
+    const lst = this.discovery
+    if undefined === fn_discover ::
+      lst.push @ as_func @ accept
+
+    else ::
+      accept = discoveryTest[typeof accept](accept)
+      lst.push @\ q => accept(q) ? fn_discover(q) : undefined
+
+  async _discoverFirst(query) ::
+    const lstFns = this.discovery
+    if 0 !== lstFns.length ::
+      return discoverFirst @ this, lstFns, query
+
+  _discoveryCache() :: return this.timeouts.hashbelt(15000)
+  _discoveryTimeout(resolve) :: return this.timeouts(2000, resolve)
+

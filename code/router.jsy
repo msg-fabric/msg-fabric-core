@@ -1,5 +1,6 @@
 import { o_assign, o_create, is_func, as_func } from './builtins.jsy'
-import { DiscoveryBase, bindTimeouts } from './utils.jsy'
+import { DiscoveryBase } from './discovery.jsy'
+import { bindTimeouts } from './timeouts.jsy'
 import { bindCoreRouterAPI } from './router_core.jsy'
 import { base_channel, channel_kinds } from './channel.jsy'
 
