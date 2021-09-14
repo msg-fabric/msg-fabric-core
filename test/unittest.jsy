@@ -1,49 +1,37 @@
-(require('source-map-support') || {install(){}}).install()
+import FabricBaseHub from 'msg-fabric-core/esm/core.js'
+import mfpi_standard from 'msg-fabric-core/esm/mfpi-standard.js'
+import mfpi_cbor from 'msg-fabric-core/esm/mfpi-cbor.js'
 
+import mfpi_direct from 'msg-fabric-core/esm/mfpi-direct.js'
+import mfpi_web from 'msg-fabric-core/esm/mfpi-web.js'
+import mfpi_rpc from 'msg-fabric-core/esm/mfpi-rpc.js'
+
+let mfpis = [
+  mfpi_standard(),
+  mfpi_direct(),
+  mfpi_web(),
+  mfpi_rpc(),
+]
 
 #IF PLAT_WEB
-  import FabricBaseHub from 'msg-fabric-core/esm/web/core.js'
-  import pi_standard from 'msg-fabric-core/esm/web/plugin-standard.js'
-  import pi_cbor from 'msg-fabric-core/esm/web/plugin-cbor.js'
-
-  import pi_direct from 'msg-fabric-core/esm/web/plugin-direct.js'
-  import pi_web from 'msg-fabric-core/esm/web/plugin-web.js'
-  import pi_rpc from 'msg-fabric-core/esm/web/plugin-rpc.js'
-
-  const FabricHub = FabricBaseHub.plugin @
-    pi_standard()
-    pi_direct()
-    pi_web()
-    pi_rpc()
-
-  const FabricHubCBOR = FabricHub.plugin @
-    pi_cbor()
+  import mfpi_ids_web from 'msg-fabric-core/esm/mfpi-ids-web.js'
+  mfpis.push(mfpi_ids_web())
 
 #IF PLAT_NODEJS
-  import FabricBaseHub from 'msg-fabric-core/esm/core.js'
-  import pi_standard from 'msg-fabric-core/esm/plugin-standard.js'
-  import pi_cbor from 'msg-fabric-core/esm/plugin-cbor.js'
+  import mfpi_ids_node from 'msg-fabric-core/esm/mfpi-ids-node.js'
+  import mfpi_direct_stream from 'msg-fabric-core/esm/mfpi-net-stream.js'
+  import mfpi_tcp_stream from 'msg-fabric-core/esm/mfpi-net-tcp.js'
+  import mfpi_tls_stream from 'msg-fabric-core/esm/mfpi-net-tls.js'
 
-  import pi_direct from 'msg-fabric-core/esm/plugin-direct.js'
-  import pi_web from 'msg-fabric-core/esm/plugin-web.js'
-  import pi_rpc from 'msg-fabric-core/esm/plugin-rpc.js'
+  mfpis.push(
+    mfpi_ids_node(),
+    mfpi_tcp_stream(),
+    mfpi_tls_stream(),
+    mfpi_direct_stream(),
+  )
 
-  import pi_direct_stream from 'msg-fabric-core/esm/plugin-net-stream.js'
-  import pi_tcp_stream from 'msg-fabric-core/esm/plugin-net-tcp.js'
-  import pi_tls_stream from 'msg-fabric-core/esm/plugin-net-tls.js'
-
-  const FabricHub = FabricBaseHub.plugin @
-    pi_standard()
-    pi_direct()
-    pi_web()
-    pi_rpc()
-
-    pi_tcp_stream()
-    pi_tls_stream()
-    pi_direct_stream()
-
-  const FabricHubCBOR = FabricHub.plugin @
-    pi_cbor()
+const FabricHub = FabricBaseHub.plugin(... mfpis)
+const FabricHubCBOR = FabricHub.plugin @ mfpi_cbor()
 
 
 import { _init } from './unit/_setup.jsy'

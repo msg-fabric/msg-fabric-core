@@ -4,6 +4,7 @@ package-lock.json
 test/**/*.iife*
 test/**/*.umd*
 test/__*.js
+test/_out/
 dist/
 cjs/
 esm/

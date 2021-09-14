@@ -1,6 +1,6 @@
 import {builtinModules} from 'module'
-import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_commonjs from '@rollup/plugin-commonjs'
+import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from 'rollup-plugin-jsy'
 
@@ -21,19 +21,19 @@ export default [
 
     { input: './browser.hub.js',
       output: {
-        file: './__unittest.hub.umd.js',
+        file: './_out/__unittest.hub.umd.js',
         format: 'umd', name:'MsgFabricTestHub', sourcemap },
       external: [], plugins: test_plugins_web },
 
     { input: './unittest.jsy',
       output: {
-        file: './__unittest.iife.js',
+        file: './_out/__unittest.iife.js',
         format: 'iife', sourcemap },
       external: [], plugins: test_plugins_web },
 
     { input: './unittest.jsy',
       output: {
-        file: './__unittest.cjs.js',
+        file: './_out/__unittest.cjs.js',
         format: 'cjs', sourcemap },
       external: external_node,
       plugins: test_plugins_nodejs },

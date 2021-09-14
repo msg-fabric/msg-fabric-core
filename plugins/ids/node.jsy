@@ -1,0 +1,10 @@
+import { randomBytes } from 'node:crypto'
+
+export function random_base64(n) ::
+  return randomBytes(n).toString('base64').replace(/=+$/, '')
+
+export default node_ids_plugin
+export function node_ids_plugin() ::
+  return @{} pre(hub) ::
+    hub._rand_id = random_base64
+

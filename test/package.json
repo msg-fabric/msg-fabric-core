@@ -11,18 +11,21 @@
     "faye-websocket": "^0.11.4",
     "jsy-node": "^1.6.5",
     "mocha": "^9.0.2",
+    "qsrv": "^0.1.9",
     "rollup": "^2.53.3",
     "rollup-plugin-dgnotify": "^0.1.7",
     "sinon": "^11.1.1",
     "ws": "^8.2.2"
   },
   "scripts": {
+    "serve": "npx qsrv -p 8082 -f unittest.html -w ./_out",
+    "clean": "rm _out/*",
     "prebuild": "test -d ./node_modules || npm ci",
     "pretest": "npm -s run build",
     "build": "rollup --config",
     "watch": "rollup --config --watch",
     "test": "npm -s run test:one",
-    "test:one": "NODE_OPTIONS=--enable-source-maps mocha ./__unittest.cjs.js",
-    "test:min": "NODE_OPTIONS=--enable-source-maps mocha --reporter=min ./__unittest.cjs.js"
+    "test:one": "NODE_OPTIONS=--enable-source-maps mocha ./_out/__unittest.cjs.js",
+    "test:min": "NODE_OPTIONS=--enable-source-maps mocha --reporter=min ./_out/__unittest.cjs.js"
   }
 }

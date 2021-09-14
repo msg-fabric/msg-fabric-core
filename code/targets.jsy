@@ -1,5 +1,4 @@
 import { o_assign, o_create  } from './builtins.jsy'
-import { random_base64 } from './data_utils.jsy'
 import { DiscoveryBase } from './utils.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'
 
@@ -8,7 +7,9 @@ export class TargetRouter extends DiscoveryBase ::
   constructor(id_route, router, hub) ::
     super()
     const {timeouts, send, loopback} = router.router_ctx
-    o_assign @ this, @{} timeouts, send, loopback
+    o_assign @ this, @{}
+      timeouts, send, loopback,
+      newTargetId: () => hub.newTargetId()
 
     if this._skip_bind_api :: return this
 
@@ -19,8 +20,6 @@ export class TargetRouter extends DiscoveryBase ::
 
   _initTargets() :: return new Map()
   _on_error(scope, err) :: console.error @ 'target', scope, err
-
-  newTargetId() :: return random_base64(6)
 
 
   async discoverTarget(id_target, rtrctx) ::
