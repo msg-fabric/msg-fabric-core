@@ -1,25 +1,23 @@
-import { o_create } from '../../code/builtins.jsy'
-
 export function p2p_plugin({ p2p }={}) ::
   return hub => ::
     if undefined === p2p ::
-      p2p = bind_basic_p2p @ hub.data_utils
+      p2p = bind_basic_p2p(hub)
 
     hub._root_.p2p = p2p
 
 
-export function bind_basic_p2p({ random_base64 }) ::
+export function bind_basic_p2p(hub) ::
   return @{}
     __proto__: null
 
     initForChannel(channel) ::
-      return o_create @ this, @{}
+      return Object.create @ this, @{}
         channel: @{} value: channel
         router: @{} value: channel.router
 
     async hello(ms_timeout=500) ::
       const { channel, router } = this
-      const id_reply = random_base64(6)
+      const id_reply = hub.newTargetId()
       const p = new Promise @ (resolve, reject) => ::
         this[ '_m$_' + id_reply ] = resolve
         if ms_timeout ::

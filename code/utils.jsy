@@ -1,5 +1,4 @@
 import { o_assign, o_defprop, is_func, as_func } from './builtins.jsy'
-import { data_utils } from './data_utils.jsy'
 
 const _discover_cache = new WeakMap()
 export function discoverFirst(host, lstFns, query) ::
@@ -162,16 +161,4 @@ export function bindTimeouts(ms_interval) ::
         tick_interval(ms, q)
 
       return add
-
-
-
-export const cmpPlugins = (a, b) => (0 | a && a.order) - (0 | b && b.order)
-export function applyPlugins(key, pluginList, ...args) ::
-  if ! key :: key = null
-  for let plugin of pluginList ::
-    if ! plugin :: continue
-    if null !== key ::
-      plugin = plugin[key]
-    if is_func @ plugin ::
-      plugin(...args)
 

@@ -1,4 +1,4 @@
-import {PassThrough} from 'stream'
+import {PassThrough} from 'node:stream'
 import {stream_common} from './_stream_common.jsy'
 
 export default direct_stream_plugin

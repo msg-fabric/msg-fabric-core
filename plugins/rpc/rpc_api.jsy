@@ -1,9 +1,7 @@
-const o_assign = Object.assign
-const isArray = Array.isArray
-const ident = v => v
 
 export function bind_rpc_api_dispatch(send, base_rpc_options) ::
-  base_rpc_options = o_assign @
+  const ident = v => v
+  base_rpc_options = Object.assign @
     @{} prefix: 'm$', dnu: '__dnu__'
         extend_api: ident
         params: false
@@ -14,7 +12,7 @@ export function bind_rpc_api_dispatch(send, base_rpc_options) ::
   return @{} api_binder
 
   function api_binder(api) ::
-    const rpc_options = o_assign @ {__proto__: base_rpc_options}, api.rpc_options
+    const rpc_options = Object.assign @ {__proto__: base_rpc_options}, api.rpc_options
     const { prefix, dnu, extend_api } = rpc_options
     const bind_params = as_bind_params @ rpc_options.params
 
@@ -23,7 +21,7 @@ export function bind_rpc_api_dispatch(send, base_rpc_options) ::
 
     function rpc_binder(call, pkt) ::
       // call: @[] '!', id_reply, method, 
-      if ! isArray(call) || '!' !== call[0] ::
+      if ! Array.isArray(call) || '!' !== call[0] ::
         return null
 
       const method = call[2]

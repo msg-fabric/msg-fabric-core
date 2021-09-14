@@ -1,5 +1,3 @@
-const isArray = Array.isArray
-const o_assign = Object.assign
 
 export function bind_rpc_client(tgt_router) ::
   const { send } = tgt_router
@@ -10,7 +8,7 @@ export function bind_rpc_client(tgt_router) ::
     get(obj, prop, pxy) ::
       if 'string' === typeof prop ::
         if prop.includes('$') ::
-          const method_obj = o_assign @ () => prop, obj
+          const method_obj = Object.assign @ () => prop, obj
           return new Proxy @ method_obj, rpc_method_proxy
 
         const rpc_fn = this['rpc_'+prop]
@@ -44,7 +42,7 @@ export function bind_rpc_client(tgt_router) ::
 
 
   return (id, meta) => ::
-    if ! isArray(id) || ! id[0] ::
+    if ! Array.isArray(id) || ! id[0] ::
       throw new TypeError
 
     return new Proxy @ {id, meta}, rpc_api_proxy

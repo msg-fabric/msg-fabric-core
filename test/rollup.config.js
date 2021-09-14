@@ -1,7 +1,8 @@
+import {builtinModules} from 'module'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_commonjs from '@rollup/plugin-commonjs'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
-import rpi_jsy from 'rollup-plugin-jsy-lite'
+import rpi_jsy from 'rollup-plugin-jsy'
 
 const _rpis_ = (defines, ...args) => [
   rpi_jsy({defines}),
@@ -10,6 +11,7 @@ const _rpis_ = (defines, ...args) => [
   ...args,
   rpi_dgnotify()]
 
+const external_node = id => /^node:/.test(id) || builtinModules.includes(id)
 const sourcemap = 'inline'
 
 const test_plugins_nodejs = _rpis_({PLAT_NODEJS: true})
@@ -33,7 +35,7 @@ export default [
       output: {
         file: './__unittest.cjs.js',
         format: 'cjs', sourcemap },
-      external: ['stream', 'net', 'tls', 'zlib', 'crypto'],
+      external: external_node,
       plugins: test_plugins_nodejs },
 
 ]

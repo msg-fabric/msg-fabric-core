@@ -1,4 +1,4 @@
-import { createServer as _tls_server, connect as _tls_connect } from 'tls'
+import { createServer as _tls_server, connect as _tls_connect } from 'node:tls'
 import {net_common} from './_net_common.jsy'
 
 export default tls_plugin

@@ -88,15 +88,15 @@ export function send_channel(p2p, dispatch) ::
       dispatch @ await pkt
 
 
-export function codec_channel(p2p, dispatch, {encode, decode}) ::
+export function codec_channel(p2p, dispatch, {encode_pkt, decode_pkt}) ::
   // see plugin/standard/json_codec.jsy for a codec implementation
-  return this.raw_channel @ p2p, decode, @{}
+  return this.raw_channel @ p2p, decode_pkt, @{}
     dispatch: async pkt =>
-      dispatch @ await encode @ pkt
+      dispatch @ await encode_pkt @ pkt
     send: async (...args) =>
-      dispatch @ await encode @ as_send_pkt @ args
+      dispatch @ await encode_pkt @ as_send_pkt @ args
     send_pkt: async pkt =>
-      dispatch @ await encode @ pkt
+      dispatch @ await encode_pkt @ pkt
 
 
 

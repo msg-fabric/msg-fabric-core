@@ -1,4 +1,4 @@
-import { createServer as _tcp_server, createConnection as _tcp_connect } from 'net'
+import { createServer as _tcp_server, createConnection as _tcp_connect } from 'node:net'
 import {net_common} from './_net_common.jsy'
 
 export default tcp_plugin

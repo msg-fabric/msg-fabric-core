@@ -1,6 +1,6 @@
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
-import rpi_jsy from 'rollup-plugin-jsy-lite'
+import rpi_jsy from 'rollup-plugin-jsy'
 
 import pkg from './package.json'
 const pkg_name = pkg.name.replace(/-/g, '_')
@@ -88,6 +88,7 @@ function _add_jsy(src_root, src_name, out_name, inc_min, {module_name, plat_node
   if (null == external) external = []
   if (null == external_web) external_web = external.concat([])
   if (null == external_nodejs) external_nodejs = external.concat(['url', 'crypto', 'stream', 'net', 'tls'])
+  external_nodejs = external_nodejs.flatMap(e => [e, `node:${e}`])
 
   if (plat_nodejs && plugins_nodejs)
     configs.push({

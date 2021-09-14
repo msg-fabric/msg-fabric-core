@@ -1,4 +1,4 @@
-import { o_assign, o_create, is_func } from './builtins.jsy'
+import { o_assign, o_create  } from './builtins.jsy'
 import { random_base64 } from './data_utils.jsy'
 import { DiscoveryBase } from './utils.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'

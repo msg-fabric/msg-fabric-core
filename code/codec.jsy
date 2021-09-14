@@ -1,16 +1,18 @@
-import { is_array } from './builtins.jsy'
+import { is_array, as_func } from './builtins.jsy'
 
-export function bind_codec(name, pktlst_encode, pktlst_decode) ::
+export function bind_codec(codec) ::
   // For use with `codec_channel` of 'code/channel.jsy'
 
   // Also see plugins/standard/json_codec.jsy
   //  and see plugins/cbor/cbor_codec.jsy
 
+  as_func @ codec.encode
+  as_func @ codec.decode
   const cache = new WeakMap()
   return @{}
-    __proto__: null, name: name || 'Unknown', cache,
+    codec
 
-    encode(pkt) ::
+    encode_pkt(pkt) ::
       let pkt_data = cache.get(pkt)
       if undefined === pkt_data ::
         let id_route, id_target, meta, body
@@ -23,14 +25,14 @@ export function bind_codec(name, pktlst_encode, pktlst_decode) ::
         else ::
           ({ 0: id_route, 1: id_target, meta, body } = pkt);
 
-        pkt_data = pktlst_encode @#
+        pkt_data = codec.encode @#
           id_route, id_target, meta, body
 
         cache.set(pkt, pkt_data)
       return pkt_data
 
-    decode(pkt_data) ::
-      let pkt_vec = pktlst_decode(pkt_data)
+    decode_pkt(pkt_data) ::
+      let pkt_vec = codec.decode(pkt_data)
       let [id_route, id_target, meta, body] = pkt_vec
       let pkt = {0: id_route, 1: id_target, meta, body}
       cache.set(pkt, pkt_data)

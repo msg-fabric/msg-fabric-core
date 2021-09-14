@@ -30,7 +30,7 @@ export default function (use_cbor) ::
         throw err
 
 
-export async function createRTCTestingDataChannels() ::
+export async function createRTCTestingDataChannels(sec_sleep=15) ::
   var rtc_dc_src, rtc_dc_dst
 
   ::
@@ -41,11 +41,11 @@ export async function createRTCTestingDataChannels() ::
     const offer = await rtc_pc.createOffer()
     await rtc_pc.setLocalDescription(offer)
 
-    await sleep(10) // same-box RTC connection is currently timing sensitive
+    await sleep(sec_sleep) // same-box RTC connection is currently timing sensitive
 
     const dst_desc = await init_destination @ rtc_pc.localDescription
 
-    await sleep(10) // same-box RTC connection is currently timing sensitive
+    await sleep(sec_sleep) // same-box RTC connection is currently timing sensitive
 
     await rtc_pc.setRemoteDescription @ dst_desc
 

@@ -1,5 +1,4 @@
 export * from './utils.jsy'
-export * from './data_utils.jsy'
 export * from './channel.jsy'
 export * from './codec.jsy'
 export * from './router_core.jsy'

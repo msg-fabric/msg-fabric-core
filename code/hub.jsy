@@ -1,12 +1,15 @@
 import { o_assign, o_create, o_freeze, as_func } from './builtins.jsy'
-import { random_base64, data_utils } from './data_utils.jsy'
+import { _pi_apply, _pi_cmp } from './_hub_pi.jsy'
+import { random_base64 } from './data_utils.jsy'
+import { bind_codec } from './codec.jsy'
 
 import { FabricRouter } from './router.jsy'
 import { TargetRouter } from './targets.jsy'
 
-import { applyPlugins, cmpPlugins } from './utils.jsy'
 
 export class FabricHub ::
+  get is_fabric_hub() :: return true
+
   static create(...args) :: return new this(...args)
 
   constructor(options) ::
@@ -18,7 +21,7 @@ export class FabricHub ::
     this.options = options
 
 
-    applyPlugins @ 'pre', this._plugins_, self
+    _pi_apply @ 'pre', this._plugins_, self
 
     const router = self._initHubRouter(options)
     const loopback = router.loopback
@@ -29,8 +32,8 @@ export class FabricHub ::
 
     this.local = self._initLocal(options)
 
-    applyPlugins @ null, this._plugins_, self
-    applyPlugins @ 'post', this._plugins_, self
+    _pi_apply @ null, this._plugins_, self
+    _pi_apply @ 'post', this._plugins_, self
     return self
 
   _initHubRouter(options) ::
@@ -48,9 +51,9 @@ export class FabricHub ::
 
   newRouteId() ::
     const id = random_base64(5).slice(0, 6)
-    const prefix = this.options.id_prefix
-    return undefined === prefix ? id : prefix+id
+    return `${this.options.id_prefix||''}${id}`
 
+  newTargetId() :: return random_base64(6)
 
   async connectUpstream(upstream) ::
     upstream = await upstream
@@ -79,58 +82,56 @@ export class FabricHub ::
       this._url_protos[protocol] = cb_connect
     return this
 
+  // --- stream codec support
+
+  bind_codec(codec) ::
+    return bind_codec(codec)
+
+  as_stream_codec(codec) ::
+    return this.stream_codec =
+      this.bind_codec(codec)
 
   // --- plugin support ---
 
   livePlugin(... _plugins_) ::
-    _plugins_.sort(cmpPlugins)
+    _plugins_.sort(_pi_cmp)
 
-    applyPlugins @ 'live', _plugins_, this
-    applyPlugins @ null, _plugins_, this
-    applyPlugins @ 'post', _plugins_, this
+    _pi_apply @ 'live', _plugins_, this
+    _pi_apply @ null, _plugins_, this
+    _pi_apply @ 'post', _plugins_, this
     return this
 
   static plugin(... _plugins_) ::
     _plugins_ = o_freeze @
-      this._plugins_
-        .concat @ _plugins_
-        .sort @ cmpPlugins
+      [... this._plugins_ || [], 
+       ... _plugins_,
+      ].sort @ _pi_cmp
 
     const inst_plugins = _plugins_.slice()
-
-    class FabricRouter extends this.FabricRouter ::
-    class TargetRouter extends this.TargetRouter ::
 
     class FabricHub extends this ::
     FabricHub.prototype._plugins_ = inst_plugins
 
-    o_assign @ FabricHub, @{} _plugins_,
-      FabricRouter, TargetRouter
+    o_assign @ FabricHub, @{}
+      FabricRouter: (class extends (this.FabricRouter || FabricRouter) {}),
+      TargetRouter: (class extends (this.TargetRouter || TargetRouter) {}),
+      _plugins_
 
-    applyPlugins @ 'subclass', _plugins_, FabricHub, inst_plugins
-    inst_plugins.sort @ cmpPlugins
+    _pi_apply @ 'subclass', _plugins_, FabricHub, inst_plugins
+    inst_plugins.sort @ _pi_cmp // re-sort inst_plugins if extended during 'subclass'
+
     return FabricHub
 
-
-o_assign @ FabricHub.prototype, @{}
-  is_fabric_hub: true
-  _plugins_: o_freeze([])
-  data_utils
 
   /* Plugin Provided (plugin/standard or similar):
 
        stream_codec: @{}
-         encode(pkt) : pkt_data
-         decode(pkt_data) : pkt
+         encode_pkt(pkt) : pkt_data
+         decode_pkt(pkt_data) : pkt
 
        p2p: @{}
         hello(ms_timeout=500) : Promise of peer_info
         peerRoute(pkt, pktctx) : awaitable
 
   */
-
-o_assign @ FabricHub, @{}
-  _plugins_: o_freeze([])
-  FabricRouter
-  TargetRouter
 
