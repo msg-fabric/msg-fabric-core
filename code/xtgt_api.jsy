@@ -43,7 +43,7 @@ export function bindXTargetAPI(router_ctx) ::
       return this
 
     untilReply(ms_timeout, absent, on_reply) ::
-      this.reset = _bind_untilReply.apply(this, arguments)
+      this.reset = _bind_untilReply(ms_timeout, absent, on_reply)
       return this.reset()
     reset: _bind_untilReply()
 
@@ -51,15 +51,14 @@ export function bindXTargetAPI(router_ctx) ::
   return @{} xresp_api, xtgt_api
 
 
-function _pkt_body(pkt) :: return pkt.body
 function _bind_untilReply(ms_timeout_p=1000, absent, on_reply) ::
   if undefined === on_reply ::
-    on_reply = absent || _pkt_body
+    on_reply = absent || @ pkt => pkt.body
     absent = undefined
 
-  return function(ms_timeout=ms_timeout_p) ::
+  return function reset(ms_timeout=ms_timeout_p) ::
     return this.until @
-      new Promise @ resolve => ::
+      new Promise @\ resolve ::
         this.enable @ pkt => resolve @ on_reply(pkt)
 
         if ms_timeout ::
