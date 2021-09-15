@@ -1,17 +1,13 @@
 
 export function bind_rpc_client(tgt_router) ::
-  const { send } = tgt_router
-
   const rpc_api_proxy = @{}
-    __proto__: null
-
     get(obj, prop, pxy) ::
       if 'string' === typeof prop ::
         if prop.includes('$') ::
-          const method_obj = Object.assign @ () => prop, obj
+          let method_obj = Object.assign @ () => prop, obj
           return new Proxy @ method_obj, rpc_method_proxy
 
-        const rpc_fn = this['rpc_'+prop]
+        let rpc_fn = this['rpc_'+prop]
         if 'function' === typeof rpc_fn ::
           return rpc_fn.bind(pxy, obj)
 
@@ -29,15 +25,15 @@ export function bind_rpc_client(tgt_router) ::
       return this.rpc_query @ method_obj, ...args
 
     async rpc_query(method_obj, ...args) ::
-      const { id, meta, ms_timeout } = method_obj
-      const r = tgt_router.addReply(ms_timeout)
-      await send @: 0: id[0], 1: id[1], meta,
+      let { id, meta, ms_timeout } = method_obj
+      let r = tgt_router.addReply(ms_timeout)
+      await tgt_router.send @: 0: id[0], 1: id[1], meta,
         body: @[] '!', r.id, method_obj(), ...args
       return await r
 
     async rpc_post(method_obj, ...args) ::
-      const { id, meta, ms_timeout } = method_obj
-      await send @: 0: id[0], 1: id[1], meta,
+      let { id, meta, ms_timeout } = method_obj
+      await tgt_router.send @: 0: id[0], 1: id[1], meta,
         body: @[] '!', null, method_obj(), ...args
 
 

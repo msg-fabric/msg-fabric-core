@@ -1,70 +1,82 @@
 
+
 export function bind_rpc_api_dispatch(send, base_rpc_options) ::
-  const ident = v => v
-  base_rpc_options = Object.assign @
-    @{} prefix: 'm$', dnu: '__dnu__'
-        extend_api: ident
-        params: false
-        parallel: false
+  const _f_ident = v => v
+  const _with_pkt = (params, {pkt}) => ( params.unshift(pkt), params )
 
-    base_rpc_options
+  const _as_api_fn = (api, name, args) =>
+    api[name] && @=> api[name](...args)
 
-  return @{} api_binder
+  const _as_rpc_reply = (rpc_fn, id_reply) =>
+    @::>
+      // TODO: What about exceptions?
+      let body = await rpc_fn()
+      await send({0: id_reply[0], 1: id_reply[1], body})
+
+  base_rpc_options = @{}
+    prefix: 'm$', dnu: '__dnu__'
+    extend_api: _f_ident
+    params: false
+    parallel: false
+
+    ... base_rpc_options
+
+  return api_binder
 
   function api_binder(api) ::
-    const rpc_options = Object.assign @ {__proto__: base_rpc_options}, api.rpc_options
-    const { prefix, dnu, extend_api } = rpc_options
-    const bind_params = as_bind_params @ rpc_options.params
+    let rpc_options = @{} __proto__: base_rpc_options, ... api.rpc_options
+    let { prefix, dnu, extend_api, params, parallel } = rpc_options
+    params = _as_bind_params(params)
 
-    rpc_binder.parallel = rpc_options.parallel
-    return rpc_binder
+    return @{} rpc_binder,
+      as_dispatch: (parallel ? _disp_parallel : _disp_serial)(rpc_binder)
 
     function rpc_binder(call, pkt) ::
-      // call: @[] '!', id_reply, method, 
-      if ! Array.isArray(call) || '!' !== call[0] ::
-        return null
+      // call: @[] '!', id_reply, method, ... args
+      let [is_rpc, id_reply, method, ... args] = call
 
-      const method = call[2]
-      if 'string' !== typeof method ::
-        return null
-      const valid = method.startsWith(prefix)
+      if '!' !== is_rpc || 'string' !== typeof method ::
+        return null // invalid rpc call
 
-      const call_ctx = @{} pkt, call, method, valid, send
-      const _api = extend_api(api, call_ctx)
+      let valid = method.startsWith(prefix)
+      let call_ctx = @{} pkt, args, call, method, valid, send
+      let _api = extend_api(api, call_ctx)
+      
+      let rpc_fn = @ valid
+        && _as_api_fn(_api, method, params(args, call_ctx))
+        || _as_api_fn(_api, dnu, [method, call_ctx])
 
-      let fn, call_params
-      if valid :: fn = _api[method]
-
-      if undefined === fn ::
-        const fn_dnu = _api[dnu]
-        if undefined === fn_dnu ::
-          return false
-        fn = @=> fn_dnu.call @ _api, method, call_ctx
-
-      else call_params = bind_params @ call.slice(3), call_ctx
-
-      const id_reply = call[1]
+      // TODO: What about exceptions?
       return id_reply
-        ? @=>> ::
-            const body = await fn.apply @ _api, call_params
-            await call_ctx.send @: 0: id_reply[0], 1: id_reply[1], body
-
-        : @=> fn.apply @ _api, call_params
+        ? _as_rpc_reply(rpc_fn, id_reply)
+        : rpc_fn
 
 
-  function as_bind_params(key) ::
-    if false === key :: return ident
-    if 'function' === typeof key :: return key
+  function _as_bind_params(key) ::
+    switch typeof key ::
+      case 'function':
+        return key
 
-    if true === key ::
-      return (params, {pkt}) => @
-        params.unshift @ pkt
-        params
+      case 'boolean':
+        return key ? _with_pkt : _f_ident
 
-    if 'string' === typeof key ::
-      return (params, ns) => @
-        params.unshift @ ns[key]
-        params
+      case 'string':
+        return (params, ns) => @
+          params.unshift(ns[key])
+          params
 
-    throw TypeError
+      default: throw TypeError
+
+  function _disp_parallel(rpc_binder) ::
+    return @\ pkt ::
+      let api_fn = rpc_binder(pkt.body, pkt)
+      if api_fn ::
+        return api_fn()
+
+  function _disp_serial(rpc_binder) ::
+    let p = Promise.resolve()
+    return @\ pkt ::
+      let api_fn = rpc_binder(pkt.body, pkt)
+      if api_fn ::
+        return p = p.then(api_fn, api_fn)
 

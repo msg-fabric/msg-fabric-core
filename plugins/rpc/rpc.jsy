@@ -2,38 +2,17 @@ import { bind_rpc_client } from './rpc_client.jsy'
 import { bind_rpc_api_dispatch } from './rpc_api.jsy'
 
 export function rpc_plugin() ::
-
-  const dispatch_parallel = @\ binder ::
-    return @\ pkt ::
-      const api_fn = binder(pkt.body, pkt)
-      if api_fn :: return api_fn()
-
-  const dispatch_serial = @\ binder ::
-    let tip = Promise.resolve()
-    return @\ pkt ::
-      const api_fn = binder(pkt.body, pkt)
-      if api_fn ::
-        return tip = tip.then(api_fn, api_fn)
-
-  const dispatch = binder => binder.parallel
-    ? dispatch_parallel(binder)
-    : dispatch_serial(binder)
-
-
   return hub => ::
-    const { api_binder } = bind_rpc_api_dispatch(hub.send)
     const _rpc_proto_ = @{}
-      __proto__: null
       from: rpc_from
+      api_binder: bind_rpc_api_dispatch(hub.send)
+      api_target(api) :: return this.api_binder(api).as_dispatch
 
-      api_binder
-      api_target(api) :: return dispatch @ this.api_binder(api)
-
+    hub.rpc_from = rpc_from
     return hub.rpc = rpc_from(hub.local)
 
     function rpc_from(tgt_router) ::
-      const client = bind_rpc_client(tgt_router)
-
+      let client = bind_rpc_client(tgt_router)
       return @{}
         __proto__: _rpc_proto_
         to: client, client,
