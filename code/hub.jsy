@@ -12,7 +12,7 @@ export class FabricHub ::
   static create(...args) :: return new this(...args)
 
   constructor(options) ::
-    const self = o_create(this)
+    let self = o_create(this)
 
     if null == options :: options = {}
     else if 'object' !== typeof options ::
@@ -20,19 +20,19 @@ export class FabricHub ::
     this.options = options
 
 
-    _pi_apply @ 'pre', this._plugins_, self
+    _pi_apply @ ['pre'], this._plugins_, self
 
-    const router = self._initHubRouter(options)
-    const loopback = router.loopback
-    o_assign @ this, @{}
-      _root_: this
-      router, loopback, send: loopback.send,
-      _url_protos: {}
+    ::
+      let router = self._initHubRouter(options)
+      let {loopback} = router
+      o_assign @ this, @{}
+        _root_: this
+        router, loopback, send: loopback.send,
+        _url_protos: {}
 
     this.local = self._initLocal(options)
 
-    _pi_apply @ null, this._plugins_, self
-    _pi_apply @ 'post', this._plugins_, self
+    _pi_apply @ [null, 'post'], this._plugins_, self
     return self
 
   _initHubRouter(options) ::
@@ -94,9 +94,7 @@ export class FabricHub ::
   livePlugin(... _plugins_) ::
     _plugins_.sort(_pi_cmp)
 
-    _pi_apply @ 'live', _plugins_, this
-    _pi_apply @ null, _plugins_, this
-    _pi_apply @ 'post', _plugins_, this
+    _pi_apply @ ['live', null, 'post'], _plugins_, this
     return this
 
   static plugin(... _plugins_) ::
@@ -105,7 +103,7 @@ export class FabricHub ::
        ... _plugins_,
       ].sort @ _pi_cmp
 
-    const inst_plugins = _plugins_.slice()
+    let inst_plugins = _plugins_.slice()
 
     class FabricHub extends this ::
     FabricHub.prototype._plugins_ = inst_plugins
@@ -115,8 +113,9 @@ export class FabricHub ::
       TargetRouter: (class extends (this.TargetRouter || TargetRouter) {}),
       _plugins_
 
-    _pi_apply @ 'subclass', _plugins_, FabricHub, inst_plugins
+    _pi_apply @ ['subclass'], _plugins_, FabricHub, inst_plugins
     inst_plugins.sort @ _pi_cmp // re-sort inst_plugins if extended during 'subclass'
+    _pi_apply @ ['proto'], inst_plugins, FabricHub.prototype
 
     return FabricHub
 

@@ -7,7 +7,7 @@ const json_codec = @{}
     'string' === typeof data ? data
       : u8_to_utf8(data)
 
-export function stream_codec_plugin({codec}) ::
+export function json_codec_plugin() ::
   return hub => ::
-    hub._root_.as_stream_codec(codec || json_codec)
+    hub._root_.as_stream_codec(json_codec)
 

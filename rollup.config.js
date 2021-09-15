@@ -2,6 +2,7 @@ import {builtinModules} from 'module'
 import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from 'rollup-plugin-jsy'
+import { terser as rpi_terser } from 'rollup-plugin-terser'
 
 const _rpis_ = (defines, ...args) => [
   rpi_jsy({defines}),
@@ -13,27 +14,40 @@ const _cfg_ = {
   external: id => /^node:/.test(id) || builtinModules.includes(id),
   plugins: _rpis_({PLAT_ESM: true}) }
 
+const _cfg_min_ = 0
+  ? { ... _cfg_, plugins: [ ... _cfg_.plugins, rpi_terser() ]}
+  : null
+
 
 export default [
-  ... add_core_jsy('all'),
-  ... add_core_jsy('core'),
-  ... add_core_jsy('index'),
+  ... add_core_jsy('core', 'core', true),
+  ... add_core_jsy('all', 'all', false),
 
-  ... pi_standard(),
   ... pi_ids(),
-  ... pi_cbor(),
+  ... pi_codecs(),
+  ... pi_p2p(),
 
   ... pi_direct(),
   ... pi_net(),
   ... pi_web(),
 
   ... pi_rpc(),
-]
+
+  [
+    ... add_core_jsy('mf-json', 'mf-json', true),
+    ... add_core_jsy('mf-cbor', 'mf-cbor', true),
+
+    ... add_core_jsy('mf-json-web', 'mf-json-web', true),
+    ... add_core_jsy('mf-cbor-web', 'mf-cbor-web', true),
+    ... add_core_jsy('mf-json-node', 'mf-json-node', false),
+    ... add_core_jsy('mf-cbor-node', 'mf-cbor-node', false),
+  ],
+].flat(9)
 
 
-function * pi_standard() {
-  yield * add_plugin_jsy('standard/all', 'mfpi-standard-all')
-  yield * add_plugin_jsy('standard/index', 'mfpi-standard')
+function * pi_p2p() {
+  yield * add_plugin_jsy('p2p-basic/all', 'mfpi-p2p-basic-all')
+  yield * add_plugin_jsy('p2p-basic/index', 'mfpi-p2p-basic')
 }
 
 function * pi_ids() {
@@ -41,7 +55,10 @@ function * pi_ids() {
   yield * add_plugin_jsy('ids/node', 'mfpi-ids-node')
 }
 
-function * pi_cbor() {
+function * pi_codecs() {
+  yield * add_plugin_jsy('json/all', 'mfpi-json-all')
+  yield * add_plugin_jsy('json/index', 'mfpi-json')
+
   yield * add_plugin_jsy('cbor/all', 'mfpi-cbor-all')
   yield * add_plugin_jsy('cbor/index', 'mfpi-cbor')
 }
@@ -72,15 +89,17 @@ function * pi_rpc() {
 
 
 
-function * add_core_jsy(src_name) {
-  yield * _add_jsy('code', src_name, src_name) }
+function * add_core_jsy(src_name, out_name, minify) {
+  yield ({ ... _cfg_, input: `code/${src_name}.jsy`,
+    output: { file: `esm/${out_name}.js`, format: 'es', sourcemap: true }})
+
+  if (minify && _cfg_min_)
+    yield ({ ... _cfg_min_, input: `code/${src_name}.jsy`,
+      output: { file: `esm/${out_name}.min.js`, format: 'es', sourcemap: false }})
+}
 
 function * add_plugin_jsy(src_name, out_name) {
-  yield * _add_jsy('plugins', src_name, out_name) }
-
-function * _add_jsy(src_root, src_name, out_name) {
-  yield ({ ... _cfg_, 
-    input: `${src_root}/${src_name}.jsy`,
+  yield ({ ... _cfg_, input: `plugins/${src_name}.jsy`,
     output: { file: `esm/${out_name}.js`, format: 'es', sourcemap: true }})
 }
 

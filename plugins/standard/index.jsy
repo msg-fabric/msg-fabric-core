@@ -1,1 +1,0 @@
-export { standard_plugin as default } from './standard.jsy'

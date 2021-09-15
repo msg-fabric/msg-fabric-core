@@ -1,12 +1,14 @@
 import { is_func } from './builtins.jsy'
 
 export const _pi_cmp = (a, b) => (0 | a && a.order) - (0 | b && b.order)
-export function _pi_apply(key, pluginList, ...args) ::
-  if ! key :: key = null
-  for let plugin of pluginList || [] ::
-    if ! plugin :: continue
-    if null !== key ::
-      plugin = plugin[key]
-    if is_func @ plugin ::
-      plugin(...args)
+export function _pi_apply(key_list, pluginList, ...args) ::
+  for let key of key_list ::
+    key = key || null
+
+    for let plugin of pluginList || [] ::
+      if ! plugin :: continue
+      if null !== key ::
+        plugin = plugin[key]
+      if is_func @ plugin ::
+        plugin(...args)
 

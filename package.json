@@ -44,11 +44,10 @@
     "clean": "rm -rf cjs/* esm/* umd/*",
     "build": "rollup --config",
     "watch": "rollup --config --watch",
-    "prepublish": "npm -s test",
     "pretest": "npm -s run build",
     "test": "cd test; npm -s run test",
-    "test:install": "cd test; npm -s install",
-    "test:one": "cd test; npm -s run test:one",
-    "test:watch": "cd test; npm -s run test:watch"
+    "precompress": "rm esm/* ; npm -s run build",
+    "compress": "gzip -k esm/*.min.js ; brotli esm/*.min.js",
+    "prepublish": "npm -s run compress ; cd test ; npm -s run test"
   }
 }

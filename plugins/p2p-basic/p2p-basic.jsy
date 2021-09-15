@@ -1,15 +1,10 @@
 export function p2p_plugin({ p2p }={}) ::
   return hub => ::
-    if undefined === p2p ::
-      p2p = bind_basic_p2p(hub)
-
-    hub._root_.p2p = p2p
+    hub._root_.p2p = p2p || bind_basic_p2p(hub)
 
 
 export function bind_basic_p2p(hub) ::
   return @{}
-    __proto__: null
-
     initForChannel(channel) ::
       return Object.create @ this, @{}
         channel: @{} value: channel

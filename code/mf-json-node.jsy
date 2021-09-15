@@ -1,0 +1,4 @@
+import mfpi_ids from '../plugins/ids/node.jsy'
+import FabricHub from './mf-json.jsy'
+export default FabricHub.plugin(mfpi_ids())
+

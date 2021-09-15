@@ -1,4 +1,3 @@
-import { bind_codec } from '../../code/codec.jsy'
 import { cbor_encode, cbor_decode } from 'cbor-codec/esm/index.mjs'
 
 const cbor_codec = @{}

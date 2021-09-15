@@ -1,13 +1,14 @@
 import FabricBaseHub from 'msg-fabric-core/esm/core.js'
-import mfpi_standard from 'msg-fabric-core/esm/mfpi-standard.js'
+import mfpi_json from 'msg-fabric-core/esm/mfpi-json.js'
 import mfpi_cbor from 'msg-fabric-core/esm/mfpi-cbor.js'
+import mfpi_p2p from 'msg-fabric-core/esm/mfpi-p2p-basic.js'
 
 import mfpi_direct from 'msg-fabric-core/esm/mfpi-direct.js'
 import mfpi_web from 'msg-fabric-core/esm/mfpi-web.js'
 import mfpi_rpc from 'msg-fabric-core/esm/mfpi-rpc.js'
 
 let mfpis = [
-  mfpi_standard(),
+  mfpi_p2p(),
   mfpi_direct(),
   mfpi_web(),
   mfpi_rpc(),
@@ -30,8 +31,10 @@ let mfpis = [
     mfpi_direct_stream(),
   )
 
-const FabricHub = FabricBaseHub.plugin(... mfpis)
-const FabricHubCBOR = FabricHub.plugin @ mfpi_cbor()
+const FabricHub = FabricBaseHub
+  .plugin(mfpi_json(), ... mfpis)
+const FabricHubCBOR = FabricBaseHub
+  .plugin(mfpi_cbor(), ... mfpis)
 
 
 import { _init } from './unit/_setup.jsy'
