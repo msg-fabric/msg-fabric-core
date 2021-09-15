@@ -14,3 +14,10 @@ export const as_func = fn => ::
   if 'function' !== typeof fn ::
     throw new TypeError
   return fn
+
+export const p_res = v =>
+  Promise.resolve(v)
+
+export const p_then = (fn, v) =>
+  is_func(fn) && p_res(v).then(fn)
+

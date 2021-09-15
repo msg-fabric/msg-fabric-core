@@ -7,5 +7,5 @@ export function random_base64(n) ::
 export default web_ids_plugin
 export function web_ids_plugin() ::
   return @{} pre(hub) ::
-    hub._rand_id = random_base64
+    hub.randId = random_base64
 

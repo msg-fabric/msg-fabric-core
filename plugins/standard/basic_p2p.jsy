@@ -17,7 +17,7 @@ export function bind_basic_p2p(hub) ::
 
     async hello(ms_timeout=500) ::
       const { channel, router } = this
-      const id_reply = hub.newTargetId()
+      const id_reply = hub.randId(6)
       const p = new Promise @ (resolve, reject) => ::
         this[ '_m$_' + id_reply ] = resolve
         if ms_timeout ::

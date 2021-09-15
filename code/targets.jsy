@@ -6,14 +6,12 @@ export class TargetRouter extends DiscoveryBase ::
 
   constructor(id_route, router, hub) ::
     super()
-    const {timeouts, send, loopback} = router.router_ctx
-    o_assign @ this, @{}
-      timeouts, send, loopback,
-      newTargetId: () => hub.newTargetId()
+    let {randId} = hub, {timeouts, send, loopback} = router.router_ctx
+    o_assign @ this, @{} timeouts, send, loopback, randId
 
     if this._skip_bind_api :: return this
 
-    const self = o_create(this)
+    let self = o_create(this)
     o_assign @ this,
       bindCoreTargetAPI @ self, this._initTargets(), id_route, router
     return self
@@ -21,6 +19,7 @@ export class TargetRouter extends DiscoveryBase ::
   _initTargets() :: return new Map()
   _on_error(scope, err) :: console.error @ 'target', scope, err
 
+  newTargetId() :: return this.randId(4)
 
   async discoverTarget(id_target, rtrctx) ::
     await this._discoverFirst @:

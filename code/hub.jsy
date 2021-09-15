@@ -1,5 +1,5 @@
 import { o_assign, o_create, o_freeze, as_func } from './builtins.jsy'
-import { _pi_apply, _pi_cmp } from './hub_mfpi.jsy'
+import { _pi_apply, _pi_cmp } from './mfpi.jsy'
 import { bind_codec } from './codec.jsy'
 
 import { FabricRouter } from './router.jsy'
@@ -49,12 +49,9 @@ export class FabricHub ::
     return local
 
   newRouteId() ::
-    return `${this.options.id_prefix||''}${this._rand_id(5)}`
+    return `${this.options.id_prefix||''}${this.randId(5)}`
 
-  newTargetId() :: return this._rand_id(6)
-
-  _rand_id(n) ::
-    return Math.random().toString(36).slice(2)
+  randId(n) :: return Math.random().toString(36).slice(2)
 
   async connectUpstream(upstream) ::
     upstream = await upstream

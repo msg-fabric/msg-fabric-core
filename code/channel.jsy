@@ -1,4 +1,4 @@
-import { o_assign, o_create, is_array } from './builtins.jsy'
+import { o_assign, o_create, is_array, p_res } from './builtins.jsy'
 
 
 export const channel_kinds = @{}
@@ -31,7 +31,7 @@ export const base_channel = @{}
 
   async init(channel_id) ::
     if undefined === this.peer_info ::
-      this.peer_info = Promise.resolve(this.ready)
+      this.peer_info = p_res(this.ready)
         .then @=> this.p2p ? this.p2p.hello() : null
       this.peer_info.catch(Boolean) // supress 'unhandled rejection' warnings
 

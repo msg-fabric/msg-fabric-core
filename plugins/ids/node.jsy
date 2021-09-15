@@ -6,5 +6,5 @@ export function random_base64(n) ::
 export default node_ids_plugin
 export function node_ids_plugin() ::
   return @{} pre(hub) ::
-    hub._rand_id = random_base64
+    hub.randId = random_base64
 
