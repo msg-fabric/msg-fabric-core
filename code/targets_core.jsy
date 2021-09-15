@@ -1,15 +1,11 @@
-import { o_assign, o_defprop, as_func } from './builtins.jsy'
+import { o_assign, o_defprop, as_func, p_then } from './builtins.jsy'
 
 export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router) ::
   // as closures over private variables (targets_map)
-  const ready = 'string' === typeof id_route
-    ? Promise.resolve @ _add_target_route @ id_route
-    : id_route.then @ _add_target_route
-
-  return @{} ready
+  return @{} ready: _add_target_route(id_route)
 
   async function target_route(pkt, pktctx) ::
-    const id_target = pkt[1] || ''
+    let id_target = pkt[1] || ''
     let target = targets_map.get(id_target)
 
     if undefined === target ::
@@ -17,18 +13,19 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
       target = targets_map.get(id_target)
 
       if undefined === target ::
-        const channel = pktctx.channel
+        let channel = pktctx.channel
         return channel && channel.undeliverable(pkt, 'target')
 
     // Trigger on_sent for internal hub routing
-    if undefined !== pkt.on_sent ::
-      Promise.resolve().then(pkt.on_sent)
+    p_then(pkt.on_sent, pkt)
 
     pktctx.tgt_router = tgt_router
     await target(pkt, pktctx)
 
 
-  function _add_target_route(id_route) ::
+  async function _add_target_route(id_route) ::
+    if 'string' !== typeof id_route ::
+      id_route = await id_route
     tgt_router.id_route = target_route.id_route = id_route
     router.addRoute @ id_route, target_route, true
     return true
@@ -38,47 +35,41 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
   const xtgt_api = @{} tgt_router, __proto__: router.xctx_apis.xtgt_api
   const xresp_api = @{} tgt_router, __proto__: router.xctx_apis.xresp_api
 
-  const setTarget = (id_target, target) => ::
+  function setTarget(id_target, target) ::
     targets_map.set @ id_target, as_func(target)
 
-  const targets_api = @{}
-    __proto__: null
-
+  return @{}
     setTarget
     addTarget(id_target, target, opt) ::
-      const id = @[] id_route, id_target
+      let id = @[] id_route, id_target
       if !opt || !opt.ms_ttl ::
         setTarget @ id_target, target
         return id
 
-      else ::
-        const cancel = @=> this.removeTarget @ id_target, target
-        const ttl = router.timeouts.ttl @ opt.ms_ttl,
-          opt.pre_cancel, cancel, opt.on_cancel
-        setTarget @ id_target,
-          false === opt.ttl_reset ? target
-            : target = ttl.with_reset(target)
-        ttl.id = id
-        return ttl
+      let cancel = @=> this.removeTarget @ id_target, target
+      let ttl = router.timeouts.ttl @ opt.ms_ttl,
+        opt.pre_cancel, cancel, opt.on_cancel
+      setTarget @ id_target,
+        false === opt.ttl_reset ? target
+          : target = ttl.with_reset(target)
+      ttl.id = id
+      return ttl
 
-    removeTarget(id_target) ::
-      return targets_map.delete @ id_target[1] || id_target
-
+    getTarget: id_target => targets_map.get(id_target)
+    hasTarget: id_target => targets_map.has(id_target)
+    removeTarget: id_target => targets_map.delete(id_target[1] || id_target)
     cancelTarget(id_target, target) ::
       if undefined === target ::
         target = targets_map.get(id_target)
       return @=> target === targets_map.get(id_target)
         ? targets_map.delete(id_target) : null
 
-    getTarget(id_target) :: return targets_map.get(id_target)
-    hasTarget(id_target) :: return targets_map.has(id_target)
 
     asId(id_target) :: return @[] id_route, id_target || this.newTargetId()
     xresp(id_target) :: return @{} id: this.asId(id_target), __proto__: xresp_api
     xtgt(id_target) :: return @{} id: this.asId(id_target), __proto__: xtgt_api
 
-  return o_assign @ targets_api,
-    bindCoreDispatchTarget @
-      tgt_router, targets_map,
-      id_route, router
+    ... bindCoreDispatchTarget @
+          tgt_router, targets_map,
+          id_route, router
 

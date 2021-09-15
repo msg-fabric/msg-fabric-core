@@ -1,6 +1,7 @@
+import { p_res } from './builtins.jsy'
 
 export function bindXTargetAPI(router_ctx) ::
-  const xtgt_api = @{}
+  let xtgt_api = @{}
     __proto__: router_ctx
     // tgt_router: instance of some TargetRouter-like object
     // target: null || function (pkt, pktctx)
@@ -21,43 +22,47 @@ export function bindXTargetAPI(router_ctx) ::
       return this
 
     use_serial(target) ::
-      let tip = Promise.resolve()
+      let tip = p_res()
       return this.use @\ ...args ::
-        const h = @=> target(...args)
+        let h = @=> target(...args)
         return tip = tip.then(h, h)
 
 
-  const xresp_api = @{} __proto__: xtgt_api
+  let xresp_api = @{}
+    __proto__: xtgt_api
+
+    // awaitable / promise api
     then(y,n) :: return this.ans.then(y,n)
     catch(f) :: return this.ans.catch(f)
     finally(f) :: return this.ans.finally(f)
 
     until(p) ::
-      const cancel = this.tgt_router.cancelTarget @ this.id[1]
+      let cancel = this.tgt_router.cancelTarget @ this.id[1]
       p.then(cancel, cancel)
       this.ans = p
       return this
 
     untilReply(ms_timeout, absent, on_reply) ::
-      this.reset = _bindUntilReply.apply(this, arguments)
+      this.reset = _bind_untilReply.apply(this, arguments)
       return this.reset()
-    reset: _bindUntilReply()
+    reset: _bind_untilReply()
+
 
   return @{} xresp_api, xtgt_api
 
 
-  function _pkt_body(pkt) :: return pkt.body
-  function _bindUntilReply(ms_timeout_p=1000, absent, on_reply) ::
-    if undefined === on_reply ::
-      on_reply = absent || _pkt_body
-      absent = undefined
+function _pkt_body(pkt) :: return pkt.body
+function _bind_untilReply(ms_timeout_p=1000, absent, on_reply) ::
+  if undefined === on_reply ::
+    on_reply = absent || _pkt_body
+    absent = undefined
 
-    return function(ms_timeout=ms_timeout_p) ::
-      return this.until @
-        new Promise @ resolve => ::
-          this.enable @ pkt => resolve @ on_reply(pkt)
+  return function(ms_timeout=ms_timeout_p) ::
+    return this.until @
+      new Promise @ resolve => ::
+        this.enable @ pkt => resolve @ on_reply(pkt)
 
-          if ms_timeout ::
-            this.timeouts.absent @
-              ms_timeout, resolve, absent
+        if ms_timeout ::
+          this.timeouts.absent @
+            ms_timeout, resolve, absent
 

@@ -72,6 +72,9 @@ export class FabricRouter extends DiscoveryBase ::
   dispatch(pkt, channel) : Promise
   resolveRoute(id_route, allowDiscover, allowUpstream) : route function
 
+  loopback
+  router_ctx
+  xctx_apis
   */
 
 

@@ -1,11 +1,9 @@
-import { o_assign, as_func } from './builtins.jsy'
+import { as_func } from './builtins.jsy'
 import { bindXTargetAPI } from './xtgt_api.jsy'
 
 export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
   // to create loopback, shim .dispatch onto a temporary prototype
-  const loopback = @
-      @{} dispatch, __proto__: hub_router
-    .local_channel()
+  const loopback = ({ dispatch, __proto__: hub_router}).local_channel()
 
   const router_ctx = @{} __proto__: null,
     hub_router, timeouts: hub_router.timeouts,
@@ -16,13 +14,13 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
     get reply() :: return this.channel.send
     redispatch: dispatch_one
 
-  const xctx_apis = bindXTargetAPI @ router_ctx
 
-  return @{} dispatch, resolveRoute, loopback, router_ctx, xctx_apis
+  return @{} dispatch, resolveRoute, loopback, router_ctx,
+    xctx_apis: bindXTargetAPI(router_ctx)
 
 
-  async function dispatch(pkt, channel) ::
-    dispatch_one @ pkt, @{} channel, __proto__: pktctx0
+  function dispatch(pkt, channel) ::
+    return dispatch_one @ pkt, @{} channel, __proto__: pktctx0
 
   async function dispatch_one(pkt, pktctx) ::
     pkt = await pkt
@@ -74,7 +72,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
 
 export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
   // Allow individual queries but not enumeration
-  const router_api = @{}
+  return @{}
     addRoute(id_route, route, opt) ::
       as_func(route)
       if ! opt :: opt = {}
@@ -110,6 +108,6 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
     hasRoute(id_route) ::
       return routes_map.has(id_route)
 
-  return o_assign @ router_api,
-    bindCoreDispatchRouter @
-      hub_router, hub, routes_map
+    ... bindCoreDispatchRouter @
+          hub_router, hub, routes_map
+
