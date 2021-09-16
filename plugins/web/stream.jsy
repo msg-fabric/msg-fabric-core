@@ -5,7 +5,7 @@ export default web_stream_plugin
 export function web_stream_plugin(plugin_options={}) ::
   // websocket extends basic, and is thus the superset
   return hub => ::
-    hub.web = Object.assign @
-      web_basic_api(hub, plugin_options),
-      web_stream_api(hub, plugin_options),
+    hub.web = @{} __proto__: @{}
+      ... web_basic_api(hub, plugin_options),
+      ... web_stream_api(hub, plugin_options),
 

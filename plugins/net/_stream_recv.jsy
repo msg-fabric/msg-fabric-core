@@ -21,14 +21,17 @@ export function bind_recvPacketStream(rstream, recv) ::
 
 
 
-const len_u8 = Object.assign @ (buf, b0) => b0, {width: 1}
-const len_u16be = Object.assign @ (buf) => buf.readUInt16BE(1), {width: 3}
-const len_u32be = Object.assign @ (buf) => buf.readUInt32BE(1), {width: 5}
+const lut_byLength = @!
+  let len_u32be = buf => buf.readUInt32BE(1)
+  let len_u16be = buf => buf.readUInt16BE(1)
+  let len_u8 = (buf, b0) => b0
+  len_u8.width = 1
 
-const lut_byLength = Array(256).fill(len_u8)
-lut_byLength[0] = lut_byLength[1] = lut_byLength[2] = lut_byLength[3] = null
-lut_byLength[254] = len_u16be
-lut_byLength[255] = len_u32be
+  let lut = Array(256).fill(len_u8);
+  lut[0] = lut[1] = lut[2] = lut[3] = null;
+  (lut[254] = len_u16be).width = 3;
+  (lut[255] = len_u32be).width = 5;
+  return lut
 
 export function binaryLenPrefixFeedBE(shutdown, recv_dispatch) ::
   let tipLen=null, byteLen=0, q=[]

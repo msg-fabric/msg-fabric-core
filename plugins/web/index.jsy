@@ -9,8 +9,8 @@ export function web_full_plugin(plugin_options={}) ::
     hub.registerProtocols @ ['ws', 'ws:', 'wss', 'wss:'],
       url => hub.web.connectWS(url, true)
 
-    hub.web = Object.assign @
-      web_basic_api(hub, plugin_options),
-      web_stream_api(hub, plugin_options),
-      websocket_api(hub, plugin_options),
+    hub.web = @{} __proto__: @{}
+      ... web_basic_api(hub, plugin_options),
+      ... web_stream_api(hub, plugin_options),
+      ... websocket_api(hub, plugin_options),
 

@@ -27,8 +27,8 @@ export function net_common(hub, plugin, protocol, asURL) ::
   Object.assign @ plugin, @{}
     with_url_options(options) ::
       // merges options onto this.url_options
-      return plugin.url_options = Object.assign @
-        {}, plugin.url_options, options
+      return plugin.url_options = @{}
+        ... plugin.url_options, ... options
 
 
   // shared implementation between net/tcp and tls implementations
@@ -93,7 +93,7 @@ export function net_common(hub, plugin, protocol, asURL) ::
       if 'string' === typeof conn_url.href ::
         conn_url = this.unpackURLParams(conn_url)
 
-      const options = Object.assign @ {}, conn_url, plugin.url_options
+      const options = @{} ... conn_url, ... plugin.url_options
       return plugin.on_url_connect
         ? plugin.on_url_connect(options, url)
         : options

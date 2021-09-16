@@ -1,29 +1,34 @@
-export function direct_plugin(plugin_options={}) ::
+export function direct_plugin({p2p}={}) ::
+  let _direct_ = @{}
+    connect(peer, channel_id) ::
+      return this.connectPair(peer, channel_id)[0]
+
+    pair(peer, channel_id) ::
+      return Promise.all @
+        this.connectPair(peer, channel_id)
+
+    connectPair(peer, channel_id) ::
+      const [recv_peer, chan_peer] =
+        (peer.direct || peer).createDirect @
+          pkt => recv_self(pkt), channel_id
+
+      const [recv_self, chan_self] =
+        this.createDirect @
+          recv_peer, channel_id
+
+      return @[] chan_self, chan_peer
+
   return hub => ::
-    hub.direct = @{}
-      connect(peer, channel_id) ::
-        return this.connectPair(peer, channel_id)[0]
-
-      pair(peer, channel_id) ::
-        return Promise.all @
-          this.connectPair(peer, channel_id)
-
-      connectPair(peer, channel_id) ::
-        const [recv_peer, chan_peer] =
-          (peer.direct || peer).createDirect @
-            pkt => recv_self(pkt), channel_id
-
-        const [recv_self, chan_self] =
-          this.createDirect @
-            recv_peer, channel_id
-
-        return @[] chan_self, chan_peer
-
+    let direct = @{}
+      __proto__: _direct_
+      p2p
       createDirect(dispatch, channel_id) ::
-        if 'function' !== typeof dispatch :: throw new TypeError
+        if 'function' !== typeof dispatch ::
+          throw new TypeError
+
         const [recv, channel] = hub.router.send_channel @
           this.p2p || hub.p2p, dispatch
         return @[] recv, channel.init @ channel_id || 'direct'
 
-      p2p: plugin_options.p2p
+    hub.direct = {__proto__: direct}
 

@@ -11,7 +11,7 @@ export function web_stream_api(hub, plugin_options) ::
     createStreamChannel(tgt, options) ::
       if ! options || ! options.codec ::
         const codec = this.codec || hub.stream_codec
-        options = Object.assign @ {codec}, options
+        options = {codec, ... options}
 
       return this.createChannel @ tgt, options
 
