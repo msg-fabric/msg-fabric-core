@@ -5,7 +5,6 @@ export const channel_kinds = @{}
   raw_channel, send_channel, codec_channel, local_channel
 
 export const base_channel = @{}
-  __proto__: null
   channel_id: null
 
   toJSON() :: throw new Error @ 'Not serializable'
@@ -100,42 +99,38 @@ export function codec_channel(p2p, dispatch, {encode_pkt, decode_pkt}) ::
 
 
 
-// use MessageChannel for Structured Clone
 export function local_channel() ::
-  const { port1, port2 } = new MessageChannel()
-  port2.onmessage = on_msg
-  _unref(port2)
+  let q=[], pkt_id=1, map = new Map()
 
-  const map = new Map()
-  let q=[], pkt_id=1
+  // use MessageChannel for Structured Clone
+  let { port1, port2 } = new MessageChannel()
 
-  const [recv, channel] = this.raw_channel @ null, null, @{}
-    is_local: true, addRoute: null
-    dispatch: this.dispatch,
-    send, send_pkt,
-
-  return channel
-
-  function send(...args) ::
-    return send_pkt @ as_send_pkt(args)
-
-  function send_pkt(pkt) ::
-    return new Promise @ (... p_args) => ::
+  let send_pkt = pkt =>
+    new Promise @\ y, n ::
       let id = q.pop() || pkt_id++
-      map.set @ id, p_args
+      map.set(id, [y,n])
       port1.postMessage @# id, pkt
 
-  function on_msg(evt) ::
+
+  port2.onmessage = evt => ::
     let [id, pkt] = evt.data
     let [resolve, reject] = map.get(id)
     map.delete(id)
     q.push(id) // reuse id to avoid GC thrash
 
-    let res
-    try :: res = recv @ pkt
+    try ::
+      let res = recv(pkt)
+      resolve(res)
     catch err ::
-      channel.on_send_error @ err
-      return reject(err)
+      channel.on_send_error(err)
+      reject(err)
 
-    return resolve(res)
+  let [recv, channel] = this.raw_channel @ null, null, @{}
+    is_local: true, addRoute: null
+    dispatch: this.dispatch,
+    send: (...args) => send_pkt @ as_send_pkt(args)
+    send_pkt
+
+  _unref(port2)
+  return channel
 

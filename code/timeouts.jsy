@@ -1,5 +1,12 @@
 import { o_assign, o_defprop, is_func, as_func, _unref } from './builtins.jsy'
 
+function defer_v_ctx() {
+  let y,n,_pset = (a,b) => { y=a, n=b }
+  return p => (p = new Promise(_pset), [p, y, n])
+}
+
+export const defer_v = /* #__PURE__ */ defer_v_ctx()
+
 const timeout_ttl_base = @{}
   extend: false
   reset() :: this.extend = true; return this

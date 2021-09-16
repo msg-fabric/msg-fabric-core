@@ -23,6 +23,5 @@ export function rpc_plugin() ::
             id_target = null
 
           return tgt_router.addTarget @
-            id_target || tgt_router.randId(),
-            this.api_target(api)
+            id_target, this.api_target(api)
 

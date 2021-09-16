@@ -41,15 +41,22 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
   return @{}
     setTarget
     addTarget(id_target, target, opt) ::
-      let id = @[] id_route, id_target
-      if !opt || !opt.ms_ttl ::
-        setTarget @ id_target, target
-        return id
+      if opt ::
+        if opt.ms_ttl ::
+          return this.ttl_addTarget(opt, id_target, target)
 
-      let cancel = @=> this.removeTarget @ id_target, target
+      let id = @[] id_route, id_target || this.newTargetId()
+      setTarget @ id[1], target
+      return id
+
+    ttl_addTarget(opt, id_target, target) ::
+      // TODO: this was created during msg-fabric-oaas... necessary? or plugin-ize?
+      let id = @[] id_route, id_target || this.newTargetId()
+      let cancel = @=> this.removeTarget(id[1], target)
       let ttl = router.timeouts.ttl @ opt.ms_ttl,
         opt.pre_cancel, cancel, opt.on_cancel
-      setTarget @ id_target,
+
+      setTarget @ id[1],
         false === opt.ttl_reset ? target
           : target = ttl.with_reset(target)
       ttl.id = id
@@ -66,8 +73,8 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
 
 
     asId(id_target) :: return @[] id_route, id_target || this.newTargetId()
-    xresp(id_target) :: return @{} id: this.asId(id_target), __proto__: xresp_api
     xtgt(id_target) :: return @{} id: this.asId(id_target), __proto__: xtgt_api
+    xresp(id_target) :: return @{} id: this.asId(id_target), __proto__: xresp_api
 
     ... bindCoreDispatchTarget @
           tgt_router, targets_map,

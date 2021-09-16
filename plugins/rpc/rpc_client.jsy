@@ -27,12 +27,13 @@ export function bind_rpc_client(tgt_router) ::
     async rpc_query(method_obj, ...args) ::
       let { id, meta, ms_timeout } = method_obj
       let r = tgt_router.addReply(ms_timeout)
+      let p = r.response()
       await tgt_router.send @: 0: id[0], 1: id[1], meta,
         body: @[] '!', r.id, method_obj(), ...args
-      return await r
+      return await p
 
     async rpc_post(method_obj, ...args) ::
-      let { id, meta, ms_timeout } = method_obj
+      let { id, meta } = method_obj
       await tgt_router.send @: 0: id[0], 1: id[1], meta,
         body: @[] '!', null, method_obj(), ...args
 

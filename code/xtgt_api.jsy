@@ -1,4 +1,5 @@
 import { p_res } from './builtins.jsy'
+import { defer_v } from './timeouts.jsy'
 
 export function bindXTargetAPI(router_ctx) ::
   let xtgt_api = @{}
@@ -8,22 +9,32 @@ export function bindXTargetAPI(router_ctx) ::
     // id: [id_route, id_target]
 
     is_active() ::
-      return this.tgt_router.hasTarget @ this.id[1]
+      return this.tgt_router.hasTarget(this.id[1])
 
-    enable(target) ::
-      if undefined === target :: target = this.target
-      this.tgt_router.addTarget @ this.id[1], target, this.target_opt
+    enable(target, opt=this.target_opt) ::
+      if undefined === target ::
+        target = this.target
+      return this.tgt_router.addTarget @
+        this.id[1], target, opt
 
     disable() ::
-      this.tgt_router.removeTarget @ this.id[1]
+      return this.tgt_router.removeTarget(this.id[1])
 
-    use(target) ::
-      this.enable @ this.target = target
+    get cancel() ::
+      return this.tgt_router.cancelTarget(this.id[1])
+
+    use(target, opt) ::
+      this.enable(this.target = target, opt)
       return this
 
-    use_serial(target) ::
+    use_serial(target, opt) ::
+      if undefined === target ::
+        target = this.target
+
       let tip = p_res()
-      return this.use @\ ...args ::
+      return this.use(target_s, opt)
+
+      function target_s(...args) ::
         let h = @=> target(...args)
         return tip = tip.then(h, h)
 
@@ -31,37 +42,34 @@ export function bindXTargetAPI(router_ctx) ::
   let xresp_api = @{}
     __proto__: xtgt_api
 
-    // awaitable / promise api
-    then(y,n) :: return this.ans.then(y,n)
-    catch(f) :: return this.ans.catch(f)
-    finally(f) :: return this.ans.finally(f)
+    ms_timeout: 1000
+    on_reply: pkt => pkt.body
+    with(... args) ::
+      let self = {__proto__: this}
+      for let ea of args ::
+        switch typeof ea ::
+          case 'number': self.ms_timeout = ea ; break
+          case 'function': self.on_reply = ea ; break
+          case 'object': o_assign(self, ea) ; break
+      return self
 
-    until(p) ::
-      let cancel = this.tgt_router.cancelTarget @ this.id[1]
-      p.then(cancel, cancel)
-      this.ans = p
-      return this
+    async response(absent) ::
+      let {cancel, ms_timeout} = this
 
-    untilReply(ms_timeout, absent, on_reply) ::
-      this.reset = _bind_untilReply(ms_timeout, absent, on_reply)
-      return this.reset()
-    reset: _bind_untilReply()
+      try ::
+        let p=defer_v()
+
+        this.enable(p[1])
+        if ms_timeout ::
+          this.timeouts.absent(
+            ms_timeout, p[1], absent)
+
+        let ans = await p[0]
+        return ans === absent ? absent
+          : this.on_reply(ans)
+      finally ::
+        cancel()
 
 
   return @{} xresp_api, xtgt_api
-
-
-function _bind_untilReply(ms_timeout_p=1000, absent, on_reply) ::
-  if undefined === on_reply ::
-    on_reply = absent || @ pkt => pkt.body
-    absent = undefined
-
-  return function reset(ms_timeout=ms_timeout_p) ::
-    return this.until @
-      new Promise @\ resolve ::
-        this.enable @ pkt => resolve @ on_reply(pkt)
-
-        if ms_timeout ::
-          this.timeouts.absent @
-            ms_timeout, resolve, absent
 
