@@ -20,25 +20,21 @@ let mfpis = [
 
 #IF PLAT_NODEJS
   import mfpi_ids_node from 'msg-fabric-core/esm/mfpi-ids-node.js'
-  import mfpi_direct_stream from 'msg-fabric-core/esm/mfpi-net-stream.js'
-  import mfpi_tcp_stream from 'msg-fabric-core/esm/mfpi-net-tcp.js'
-  import mfpi_tls_stream from 'msg-fabric-core/esm/mfpi-net-tls.js'
+  import mfpi_net from 'msg-fabric-core/esm/mfpi-net.js'
 
   mfpis.push(
     mfpi_ids_node(),
-    mfpi_tcp_stream(),
-    mfpi_tls_stream(),
-    mfpi_direct_stream(),
+    mfpi_net(),
   )
 
-const FabricHub = FabricBaseHub
+const FabricHubJSON = FabricBaseHub
   .plugin(mfpi_json(), ... mfpis)
 const FabricHubCBOR = FabricBaseHub
   .plugin(mfpi_cbor(), ... mfpis)
 
 
 import { _init } from './unit/_setup.jsy'
-_init(FabricHub, FabricHubCBOR)
+_init(FabricHubJSON, FabricHubCBOR)
 
 export * from './unit/all.jsy'
 

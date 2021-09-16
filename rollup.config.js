@@ -14,9 +14,8 @@ const _cfg_ = {
   external: id => /^node:/.test(id) || builtinModules.includes(id),
   plugins: _rpis_({PLAT_ESM: true}) }
 
-const _cfg_min_ = 0
-  ? { ... _cfg_, plugins: [ ... _cfg_.plugins, rpi_terser() ]}
-  : null
+const _cfg_min_ = process.env.NO_MINIFI ? null :
+  { ... _cfg_, plugins: [ ... _cfg_.plugins, rpi_terser() ]}
 
 
 export default [

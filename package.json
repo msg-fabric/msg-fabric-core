@@ -23,14 +23,14 @@
     "passing"
   ],
   "files": [
-    "index.js",
-    "cjs/",
-    "esm/",
-    "umd/"
+    "code/",
+    "esm/"
   ],
-  "main": "./index.js",
-  "module": "esm/index.js",
-  "browser": "umd/index.min.js",
+  "type": "module",
+  "exports": {
+    ".": "./esm/mf-json.js",
+    "./esm/*": "./esm/*"
+  },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.0.4",
     "cbor-codec": "^0.9.1",
@@ -43,11 +43,11 @@
   "scripts": {
     "clean": "rm -rf cjs/* esm/* umd/*",
     "build": "rollup --config",
-    "watch": "rollup --config --watch",
-    "pretest": "npm -s run build",
+    "watch": "NO_MINIFI=true rollup --config --watch",
+    "pretest": "NO_MINIFI=true npm -s run build",
     "test": "cd test; npm -s run test",
     "precompress": "rm esm/* ; npm -s run build",
     "compress": "gzip -k esm/*.min.js ; brotli esm/*.min.js",
-    "prepublish": "npm -s run compress ; cd test ; npm -s run test"
+    "prepublish": "npm -s run build ; cd test ; npm -s run test"
   }
 }
