@@ -36,7 +36,7 @@ const hub = FabricHub.create()
 ##### Add a Target
 
 ```javascript
-const tgt_addr = hub.local.addTarget(pkt => {
+const tgt_addr = hub.local.addTarget(null, pkt => {
   console.log('pkt target received pkt:', pkt)
 
   if (pkt.body.id_reply) {
@@ -55,9 +55,8 @@ hub.send(tgt_addr,
     id_reply: reply.id
   })
 
-reply.then( ans => {
-  console.log('Received reply', ans) 
-})
+let ans = await reply.response()
+console.log('Received reply', ans) 
 ```
 
 ### Connections and Platforms
