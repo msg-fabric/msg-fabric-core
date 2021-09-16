@@ -1,4 +1,4 @@
-import { o_assign, o_create, is_array, p_res } from './builtins.jsy'
+import { o_assign, o_create, is_array, p_res, _unref } from './builtins.jsy'
 
 
 export const channel_kinds = @{}
@@ -104,6 +104,7 @@ export function codec_channel(p2p, dispatch, {encode_pkt, decode_pkt}) ::
 export function local_channel() ::
   const { port1, port2 } = new MessageChannel()
   port2.onmessage = on_msg
+  _unref(port2)
 
   const map = new Map()
   let q=[], pkt_id=1

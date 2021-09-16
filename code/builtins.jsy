@@ -21,3 +21,6 @@ export const p_res = v =>
 export const p_then = (fn, v) =>
   is_func(fn) && p_res(v).then(fn)
 
+export const _unref = o =>
+  o.unref ? (o.unref(), o) : o
+

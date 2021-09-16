@@ -1,4 +1,4 @@
-import { o_assign, o_defprop, is_func, as_func } from './builtins.jsy'
+import { o_assign, o_defprop, is_func, as_func, _unref } from './builtins.jsy'
 
 const timeout_ttl_base = @{}
   extend: false
@@ -19,8 +19,7 @@ const timeout_ttl_base = @{}
 
 
 export function bindTimeouts(ms_interval) ::
-  const p0 = Promise.resolve(), p_then = p0.then.bind(p0)
-  const q = []
+  const q=[], p0=Promise.resolve(), p_then=p0.then.bind(p0)
 
   tick_interval(ms_interval, q)
   o_assign @ add, @{}
@@ -75,7 +74,7 @@ export function bindTimeouts(ms_interval) ::
         clearInterval(tid) // done
 
     const tid = setInterval @ tick, ms_interval
-    if tid.unref :: tid.unref()
+    _unref(tid)
 
     add.changeInterval = ms => ::
       if ms_interval != ms ::
