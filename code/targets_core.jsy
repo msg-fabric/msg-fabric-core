@@ -32,8 +32,8 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
 
 
 export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
-  const xtgt_api = @{} tgt_router, __proto__: router.xctx_apis.xtgt_api
-  const xresp_api = @{} tgt_router, __proto__: router.xctx_apis.xresp_api
+  const xtgt_api = @{} tgt_router, __proto__: router.xtgt_api
+  const xresp_api = @{} tgt_router, __proto__: router.xresp_api
 
   function setTarget(id_target, target) ::
     targets_map.set @ id_target, as_func(target)

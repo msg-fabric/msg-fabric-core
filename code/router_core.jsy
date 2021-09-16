@@ -16,7 +16,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
 
 
   return @{} dispatch, resolveRoute, loopback, router_ctx,
-    xctx_apis: bindXTargetAPI(router_ctx)
+    ... bindXTargetAPI(router_ctx)
 
 
   function dispatch(pkt, channel) ::
