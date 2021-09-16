@@ -1,8 +1,6 @@
 import { o_assign, o_defprop, is_func, as_func } from './builtins.jsy'
 
 const timeout_ttl_base = @{}
-  __proto__: null
-
   extend: false
   reset() :: this.extend = true; return this
   with_reset(fn) :: return (...args) => @ this.reset(), fn(...args)

@@ -7,8 +7,6 @@ export * from './_stream_recv.jsy'
 
 export function stream_common(hub) ::
   return @{}
-    __proto__: null
-
     createStreamChannel(rstream, wstream, channel_id) ::
       const [send_packed, pw_closed] = bind_sendPacketStream(wstream)
 

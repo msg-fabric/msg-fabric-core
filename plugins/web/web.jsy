@@ -3,8 +3,6 @@ export function web_basic_api(hub, plugin_options) ::
   const yes = @=> true
 
   return @{}
-    __proto__: null
-
     connect(tgt, options) ::
       const channel = this.createChannel(tgt, options)
       if null == channel.channel_id ::
