@@ -4,7 +4,7 @@ export function web_basic_api(hub, plugin_options) ::
 
   return @{}
     connect(tgt, options) ::
-      const channel = this.createChannel(tgt, options)
+      let channel = this.createChannel(tgt, options)
       if null == channel.channel_id ::
         channel.channel_id = 'web_basic'
 
@@ -15,43 +15,37 @@ export function web_basic_api(hub, plugin_options) ::
 
       let [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
 
-      let dispatch = (
-            tgt_send.postMessage ? _web_postmsg
-          : tgt_send.send ? _web_send : null
-        ).bind(tgt_send)
+      let dispatch = @
+        tgt_send.postMessage ? _web_postmsg
+        : tgt_send.send ? _web_send : null
 
-      const [recv, channel] = options.codec
-        ? hub.router.codec_channel @ this.p2p || hub.p2p, dispatch, options.codec
-        : hub.router.send_channel @ this.p2p || hub.p2p, dispatch
+      let {codec} = options
+      let args = @[] this.p2p || hub.p2p, dispatch.bind(tgt_send), codec
+
+      let [recv, channel] = codec
+        ? hub.router.codec_channel(...args)
+        : hub.router.send_channel(...args)
       channel.channel_id = options.channel_id
 
-      if tgt.close ::
-        channel.close = @=> @ tgt.close(), true
+      if tgt_recv.close ::
+        channel.close = @=> @ tgt_recv.close(), true
 
-      let set_handler = options.set_handler || _set_handler
-      set_handler @ tgt_recv, recv, options.accept || yes
+      let subscribe = options.subscribe || _on_msg_evt
+      subscribe @ tgt_recv, recv, options.accept || yes
+
+      if 'function' === typeof tgt_recv.start ::
+        tgt_recv.start()
       return channel
 
 
     p2p: plugin_options.p2p
 
 
-function _set_handler(tgt_recv, fn_recv_msg, fn_accept) ::
-  if tgt_recv.addEventListener ::
+  function _on_msg_evt(tgt_recv, fn_recv_pkt, fn_accept) ::
     tgt_recv.addEventListener @ 'message',
-      evt => true === fn_accept(evt) && fn_recv_msg(evt.data)
+      evt => true === fn_accept(evt) && fn_recv_pkt(evt.data)
       @{} passive: true
 
-  else if tgt_recv.on ::
-    // NodeJS worker_threads
-    tgt_recv.on @ 'message', fn_recv_msg
-
-  else ::
-    // message channels
-    tgt_recv.onmessage = fn_recv_msg
-
-  if 'function' === typeof tgt_recv.start ::
-    tgt_recv.start()
 
 function _web_postmsg(pkt) :: this.postMessage(pkt)
 function _web_send(pkt) :: this.send(pkt)

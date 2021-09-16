@@ -11,6 +11,7 @@ describe @ 'Target Router', test_target_router
 
 import test_pi_direct from './plugins/direct.jsy'
 import test_pi_rpc from './plugins/rpc.jsy'
+import test_pi_message_channel from './plugins/messagechannel.jsy'
 
 describe @ 'General Plugins', function() ::
 
@@ -21,6 +22,12 @@ describe @ 'General Plugins', function() ::
 
   describe @ 'rpc', function() ::
     test_pi_rpc()
+
+  describe @ 'with JSON', @::
+    test_pi_message_channel(false)
+
+  describe @ 'with CBOR', @::
+    test_pi_message_channel(true)
 
 
 #IF PLAT_WEB

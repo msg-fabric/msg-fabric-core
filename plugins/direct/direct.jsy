@@ -8,27 +8,53 @@ export function direct_plugin({p2p}={}) ::
         this.connectPair(peer, channel_id)
 
     connectPair(peer, channel_id) ::
-      const [recv_peer, chan_peer] =
+      let [recv_peer, chan_peer] =
         (peer.direct || peer).createDirect @
           pkt => recv_self(pkt), channel_id
 
-      const [recv_self, chan_self] =
+      let [recv_self, chan_self] =
         this.createDirect @
           recv_peer, channel_id
 
       return @[] chan_self, chan_peer
 
+
   return hub => ::
     let direct = @{}
       __proto__: _direct_
       p2p
+
       createDirect(dispatch, channel_id) ::
         if 'function' !== typeof dispatch ::
           throw new TypeError
 
-        const [recv, channel] = hub.router.send_channel @
+        let [recv, channel] = hub.router.send_channel @
           this.p2p || hub.p2p, dispatch
         return @[] recv, channel.init @ channel_id || 'direct'
 
+      connectMsgPort(tgt, options={}) ::
+        if null == options :: options = {}
+
+        let [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
+
+        let [recv, channel] = hub.router.send_channel @
+          this.p2p || hub.p2p,
+          tgt_send.postMessage.bind(tgt_send)
+
+        let subscribe = options.subscribe || _on_msg_evt
+        subscribe(tgt_recv, recv)
+
+        if tgt_recv.close ::
+          channel.close = @=> @ tgt_recv.close(), true
+
+        return channel.init @ options.channel_id || 'messageport'
+
+
     hub.direct = {__proto__: direct}
+
+  function _on_msg_evt(tgt_recv, fn_recv_pkt) ::
+    if tgt_recv.on ::
+      tgt_recv.on @ 'message', fn_recv_pkt
+    else ::
+      tgt_recv.onmessage = evt => fn_recv_pkt(evt.data)
 

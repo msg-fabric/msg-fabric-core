@@ -1,0 +1,29 @@
+import { expect, sleep, newLog } from '../_setup.jsy'
+import { testChannelConnection } from './_chan_tests.jsy'
+
+export default function test_pi_message_channel(use_cbor) ::
+  describe @ 'MessageChannel and MessagePort', @=> ::
+    it @ 'hub.direct.connectMsgPort is a channel', @=>> ::
+      await testChannelConnection @:
+        use_cbor
+        connect(hub_a, hub_b) ::
+          const mc = new MessageChannel()
+          hub_a.direct.connectMsgPort @ mc.port1
+          return hub_b.direct.connectMsgPort @ mc.port2
+
+    it @ 'hub.web.connect is a channel', @=>> ::
+      await testChannelConnection @:
+        use_cbor
+        connect(hub_a, hub_b) ::
+          const mc = new MessageChannel()
+          hub_a.web.connect @ mc.port1
+          return hub_b.web.connect @ mc.port2
+
+    it @ 'mixed hub.web / hub.direct is a channel', @=>> ::
+      await testChannelConnection @:
+        use_cbor
+        connect(hub_a, hub_b) ::
+          const mc = new MessageChannel()
+          hub_a.direct.connectMsgPort @ mc.port1
+          return hub_b.web.connect @ mc.port2
+

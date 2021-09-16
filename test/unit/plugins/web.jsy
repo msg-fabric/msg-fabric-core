@@ -4,15 +4,6 @@ import { testChannelConnection } from './_chan_tests.jsy'
 import test_web_worker from './web_worker.jsy'
 
 export default function (use_cbor) ::
-  describe @ 'MessageChannel and MessagePort', @=> ::
-    it @ 'hub.web.connect is a channel', @=>> ::
-      await testChannelConnection @:
-        use_cbor
-        connect(hub_a, hub_b) ::
-          const mc = new MessageChannel()
-          hub_a.web.connect @ mc.port1
-          return hub_b.web.connect @ mc.port2
-
   describe @ 'WebWorker', test_web_worker
 
   describe @ 'RTCDataChannel', @=> ::
