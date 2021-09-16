@@ -12,34 +12,46 @@ export function web_basic_api(hub, plugin_options) ::
 
     createChannel(tgt, options) ::
       if null == options :: options = {}
-      const accept = options.accept || yes
 
-      const [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
+      let [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
 
-      const dispatch = @
-          tgt_send.postMessage ? _web_postmsg
-        : tgt_send.send ? _web_send
-        : null
-      .bind @ tgt_send
+      let dispatch = (
+            tgt_send.postMessage ? _web_postmsg
+          : tgt_send.send ? _web_send : null
+        ).bind(tgt_send)
 
       const [recv, channel] = options.codec
         ? hub.router.codec_channel @ this.p2p || hub.p2p, dispatch, options.codec
         : hub.router.send_channel @ this.p2p || hub.p2p, dispatch
       channel.channel_id = options.channel_id
+
       if tgt.close ::
         channel.close = @=> @ tgt.close(), true
 
-      tgt_recv.addEventListener @ 'message',
-        evt => true === accept(evt) && recv(evt.data)
-        @{} passive: true
-
-      if 'function' === typeof tgt_recv.start ::
-        tgt_recv.start()
+      let set_handler = options.set_handler || _set_handler
+      set_handler @ tgt_recv, recv, options.accept || yes
       return channel
 
 
     p2p: plugin_options.p2p
 
+
+function _set_handler(tgt_recv, fn_recv_msg, fn_accept) ::
+  if tgt_recv.addEventListener ::
+    tgt_recv.addEventListener @ 'message',
+      evt => true === fn_accept(evt) && fn_recv_msg(evt.data)
+      @{} passive: true
+
+  else if tgt_recv.on ::
+    // NodeJS worker_threads
+    tgt_recv.on @ 'message', fn_recv_msg
+
+  else ::
+    // message channels
+    tgt_recv.onmessage = fn_recv_msg
+
+  if 'function' === typeof tgt_recv.start ::
+    tgt_recv.start()
 
 function _web_postmsg(pkt) :: this.postMessage(pkt)
 function _web_send(pkt) :: this.send(pkt)
