@@ -28,10 +28,12 @@ export class TargetRouter extends DiscoveryBase ::
 
 
   addStreamTarget(id_target, async_target, opt) ::
-    // stream is an async generator -- for await [pkt, ctx] of stream
-    let stream = ao_fence_sink()
-    let res = this.addTarget(id_target, ao_feeder_v(stream), opt)
-    res.when_run = async_target(stream, this).then()
+    let f_out = ao_fence_sink()
+    let res = this.addTarget(id_target, ao_feeder_v(f_out), opt)
+
+    // async_target(stream, target_router) : promise
+    // where stream is an async generator -- for await [pkt, ctx] of stream
+    res.when_run = async_target(f_out.ao_bound(), this).then()
     return res
 
 
