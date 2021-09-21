@@ -1,4 +1,5 @@
 import { o_assign, o_create  } from './builtins.jsy'
+import { ao_fence_sink, ao_feeder_v } from 'roap'
 import { DiscoveryBase } from './discovery.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'
 
@@ -24,6 +25,15 @@ export class TargetRouter extends DiscoveryBase ::
   async discoverTarget(id_target, rtrctx) ::
     await this._discoverFirst @:
       key: id_target, id_target, kind: 'target', rtrctx
+
+
+  addStreamTarget(id_target, async_target, opt) ::
+    // stream is an async generator -- for await [pkt, ctx] of stream
+    let stream = ao_fence_sink()
+    let res = this.addTarget(id_target, ao_feeder_v(stream), opt)
+    res.when_run = async_target(stream, this).then()
+    return res
+
 
   /* // from bindCoreTargetAPI
 
