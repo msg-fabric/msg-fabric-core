@@ -1,24 +1,8 @@
-import { Hub, expect, newLog } from './_setup.jsy'
+import { Hub, expect, newLog, sleep } from './_setup.jsy'
 
 export default function test_target_router() ::
-  describe @ 'simple messages', @=> ::
-    var hub, log
-
-    function check_msg(ts, body, meta) ::
-      if null == body ::
-        body = @{} msg: 'a message', ts
-
-      expect(log.calls[0]).to.be.deep.equal @#
-        'tgt recv', @{} 0: '$unit$', 1: 'a-tgt', meta, body
-
-      if log.calls[1] ::
-        expect(log.calls[1][0]).to.be.equal @ 'replying to'
-
-
-    beforeEach @=>> ::
-      log = newLog()
-      hub = Hub.create('$unit$')
-      hub.router.timeouts.changeInterval @ 50
+  describe @ 'simple messages', @::
+    _test_target_router_with @\ hub, log ::
 
       hub.local.addTarget @ 'a-tgt', (pkt, pktctx) => ::
         const {0: id_route, 1: id_target, meta, body} = pkt
@@ -28,18 +12,54 @@ export default function test_target_router() ::
           log @ 'replying to', body.id_reply
           pktctx.send @ body.id_reply, @{} ts_echo: body.ts
 
+  describe @ 'stream simple messages', @::
+    _test_target_router_with @\ hub, log ::
 
-    it @ 'message pkt send({ 0, 1, body })', @=>> ::
+      hub.local.addStreamTarget @ 'a-tgt', async stream => ::
+        for await let [pkt, pktctx] of stream ::
+          const {0: id_route, 1: id_target, meta, body} = pkt
+          log @ 'tgt recv', @{} 0: id_route, 1: id_target, meta, body
+
+          if body && body.id_reply ::
+            log @ 'replying to', body.id_reply
+            pktctx.send @ body.id_reply, @{} ts_echo: body.ts
+
+
+function _test_target_router_with(fn_add_target) ::
+    var hub, log
+
+    async function check_msg(ts, body, meta) ::
+      if null == body ::
+        body = @{} msg: 'a message', ts
+
+      await sleep(1)
+
+      expect(log.calls[0]).to.be.deep.equal @#
+        'tgt recv', @{} 0: '$unit$', 1: 'a-tgt', meta, body
+
+      if log.calls[1] ::
+        expect(log.calls[1][0]).to.be.equal @ 'replying to'
+
+
+    beforeEach @::>
+      log = newLog()
+      hub = Hub.create('$unit$')
+      hub.router.timeouts.changeInterval @ 50
+
+      fn_add_target(hub, log)
+
+
+    it @ 'message pkt send({ 0, 1, body })', @::>
       const ts = new Date()
       await hub.send @:
         0: '$unit$'
         1: 'a-tgt'
         body: @{} msg: 'a message', ts
 
-      check_msg(ts)
+      await check_msg(ts)
 
 
-    it @ 'message pkt with meta send({ 0, 1, meta, body })', @=>> ::
+    it @ 'message pkt with meta send({ 0, 1, meta, body })', @::>
       const ts = new Date()
       await hub.send @:
         0: '$unit$'
@@ -47,54 +67,55 @@ export default function test_target_router() ::
         meta: @{} ts
         body: @{} msg: 'a message', ts
 
-      check_msg(ts, null, { ts })
+      await check_msg(ts, null, { ts })
 
 
-    it @ 'message addr body send({ 0, 1 }, body )', @=>> ::
+    it @ 'message addr body send({ 0, 1 }, body )', @::>
       const ts = new Date()
       await hub.send @
         @{} 0: '$unit$', 1: 'a-tgt'
         @{} msg: 'a message', ts
 
-      check_msg(ts)
+      await check_msg(ts)
 
 
-    it @ 'message addr body send([ 0, 1 ], body )', @=>> ::
+    it @ 'message addr body send([ 0, 1 ], body )', @::>
       const ts = new Date()
       await hub.send @
         @[] '$unit$', 'a-tgt'
         @{} msg: 'a message', ts
 
-      check_msg(ts)
+      await check_msg(ts)
 
 
-    it @ 'message positional send(id_route, id_target, body )', @=>> ::
+    it @ 'message positional send(id_route, id_target, body )', @::>
       const ts = new Date()
       await hub.send @ '$unit$', 'a-tgt', @{}
         msg: 'a message', ts
 
-      check_msg(ts)
+      await check_msg(ts)
 
 
-    it @ 'message with reply', @=>> ::
+    it @ 'message with reply', @::>
       const ts = new Date()
 
       const reply = hub.local.addReply()
       expect(reply.response).to.be.a('function')
 
+      let p = reply.response()
       const body = @{}
         msg: 'a message', ts, id_reply: reply.id
 
       await hub.send @ '$unit$', 'a-tgt', body
 
-      check_msg(ts, body)
+      await check_msg(ts, body)
 
-      const ans = await reply.response()
+      const ans = await p
       expect(ans).to.be.deep.equal @:
         ts_echo: ts
 
 
-    it @ 'message with reply timeout', @=>> ::
+    it @ 'message with reply timeout', @::>
       const ts = new Date()
 
       const no_reply = hub.local.addReply(10)
@@ -105,7 +126,7 @@ export default function test_target_router() ::
 
       await hub.send @ '$unit$', 'a-tgt', body
 
-      check_msg(ts, body)
+      await check_msg(ts, body)
 
       let absent = Symbol('absent')
       let p = no_reply.response(absent)
