@@ -7,7 +7,7 @@ import rpi_jsy from 'rollup-plugin-jsy'
 const _rpis_ = (defines, ...args) => [
   rpi_jsy({defines}),
   rpi_resolve({ module: true, main: true }),
-  rpi_commonjs({ include: 'node_modules/**'}),
+  rpi_commonjs({ include: ['./node_modules/**', '../node_modules/**']}),
   ...args,
   rpi_dgnotify()]
 

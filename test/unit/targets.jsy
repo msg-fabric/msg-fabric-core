@@ -15,7 +15,7 @@ export default function test_target_router() ::
   describe @ 'stream simple messages', @::
     _test_target_router_with @\ hub, log ::
 
-      hub.local.addStreamTarget @ 'a-tgt', async stream => ::
+      hub.local.addStream @ 'a-tgt', async ({stream}) => ::
         for await let [pkt, pktctx] of stream ::
           const {0: id_route, 1: id_target, meta, body} = pkt
           log @ 'tgt recv', @{} 0: id_route, 1: id_target, meta, body
@@ -101,6 +101,10 @@ function _test_target_router_with(fn_add_target) ::
 
       const reply = hub.local.addReply()
       expect(reply.response).to.be.a('function')
+
+      expect(reply.id).to.be.an('array')
+      expect(reply[0]).to.equal(reply.id[0])
+      expect(reply[1]).to.equal(reply.id[1])
 
       let p = reply.response()
       const body = @{}

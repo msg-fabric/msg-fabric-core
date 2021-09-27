@@ -1,11 +1,8 @@
 import { o_assign, o_defprop, is_func, as_func, _unref } from './builtins.jsy'
 
-function defer_v_ctx() {
-  let y,n,_pset = (a,b) => { y=a, n=b }
-  return p => (p = new Promise(_pset), [p, y, n])
-}
+import { ao_defer_v } from 'roap'
+export { ao_defer_v, ao_fence_v, ao_push_stream } from 'roap'
 
-export const defer_v = /* #__PURE__ */ defer_v_ctx()
 
 const timeout_ttl_base = @{}
   extend: false
@@ -26,11 +23,17 @@ const timeout_ttl_base = @{}
 
 
 export function bindTimeouts(ms_interval) ::
-  const q=[], p0=Promise.resolve(), p_then=p0.then.bind(p0)
+  const q=[]
 
   tick_interval(ms_interval, q)
-  o_assign @ add, @{}
-    interval
+  return o_assign @ add, @{}
+    add, interval
+
+    race(ms_min_timeout, ...promises) ::
+      let dp = ao_defer_v()
+      promises.push(dp[0])
+      add(ms_min_timeout, dp[1])
+      return Promise.race(promises)
 
     absent: (ms_min_timeout, callback, value) =>
       add @ ms_min_timeout, @=> callback @
@@ -50,20 +53,21 @@ export function bindTimeouts(ms_interval) ::
       ttl.cancel = interval @ ms_min_interval || 60000, ttl.bind_cleanup(cleanup_fns)
       return ttl
 
-  return add.add = add
+    _on_error(err) :: console.error(err)
 
 
   function add(ms_min_timeout, callback) ::
     if callback ::
-      const idx = Math.max @ 1, Math.ceil @ (0|ms_min_timeout) / ms_interval
-      const qi = q[idx] || []
+      let idx = Math.max @ 1, Math.ceil @ (0|ms_min_timeout) / ms_interval
+      let qi = q[idx] || []
       if 0 === qi.length :: q[idx] = qi
       qi.push @ as_func @ callback
 
+
   function interval(ms_min_interval, callback) ::
     as_func(callback)
-    const cancel = @=> :: interval = null
-    let interval = @=> ::
+    let cancel = @:: interval = null
+    let interval = @::
       if null !== interval ::
         callback(cancel)
         add @ ms_min_interval, interval
@@ -71,12 +75,17 @@ export function bindTimeouts(ms_interval) ::
     add @ ms_min_interval, interval
     return cancel
 
+
   function tick_interval(ms, lq) ::
     ms_interval = (0 | ms) || 67
 
-    const tick = function () ::
+    function tick() ::
       const tip = lq.shift()
-      if tip :: tip.forEach @ p_then
+      if tip ::
+        let p0=Promise.resolve(add)
+        for let fn of tip ::
+          p0.then(fn).catch(add._on_error)
+
       else if lq !== q && 0 === lq.length ::
         clearInterval(tid) // done
 

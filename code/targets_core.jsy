@@ -1,4 +1,6 @@
-import { o_assign, o_defprop, as_func, p_then } from './builtins.jsy'
+import { as_func, p_then } from './builtins.jsy'
+import { ao_push_stream } from './timeouts.jsy'
+
 
 export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router) ::
   // as closures over private variables (targets_map)
@@ -32,49 +34,32 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
 
 
 export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
-  const xtgt_api = @{} tgt_router, __proto__: router.xtgt_api
-  const xresp_api = @{} tgt_router, __proto__: router.xresp_api
+  function addTarget(id_target, target) ::
+    let id = @[] id_route, id_target || tgt_router.newTargetId()
+    if null != target ::
+      targets_map.set @ id[1], as_func(target)
+    return id
 
-  function setTarget(id_target, target) ::
-    targets_map.set @ id_target, as_func(target)
+  function xstream(id_target, xapi) ::
+    let {stream, when_done, abort, push} = ao_push_stream(true)
+    let id = addTarget(id_target, push)
+    tgt_router.removeAfter(id, when_done)
+    return @{} __proto__: xapi, id, stream, abort, when_done, tgt_router
 
   return @{}
-    setTarget
-    addTarget(id_target, target, opt) ::
-      if opt ::
-        if opt.ms_ttl ::
-          return this.ttl_addTarget(opt, id_target, target)
-
-      let id = @[] id_route, id_target || this.newTargetId()
-      setTarget @ id[1], target
-      return id
-
-    ttl_addTarget(opt, id_target, target) ::
-      // TODO: this was created during msg-fabric-oaas... necessary? or plugin-ize?
-      let id = @[] id_route, id_target || this.newTargetId()
-      let cancel = @=> this.removeTarget(id[1], target)
-      let ttl = router.timeouts.ttl @ opt.ms_ttl,
-        opt.pre_cancel, cancel, opt.on_cancel
-
-      setTarget @ id[1],
-        false === opt.ttl_reset ? target
-          : target = ttl.with_reset(target)
-      ttl.id = id
-      return ttl
-
-    getTarget: id_target => targets_map.get(id_target)
+    addTarget
     hasTarget: id_target => targets_map.has(id_target)
-    removeTarget: id_target => targets_map.delete(id_target[1] || id_target)
-    cancelTarget(id_target, target) ::
-      if undefined === target ::
-        target = targets_map.get(id_target)
-      return @=> target === targets_map.get(id_target)
-        ? targets_map.delete(id_target) : null
+    getTarget: id_target => targets_map.get(id_target)
 
+    removeTarget: id_target =>
+      targets_map.delete @
+        'string'===typeof id_target
+          ? id_target
+          : id_target[1]
 
-    asId(id_target) :: return @[] id_route, id_target || this.newTargetId()
-    xtgt(id_target) :: return @{} id: this.asId(id_target), __proto__: xtgt_api
-    xresp(id_target) :: return @{} id: this.asId(id_target), __proto__: xresp_api
+    xstream
+    xtgt: id_target => xstream(id_target, router.xtgt_api)
+    xresp: id_target => xstream(id_target, router.xresp_api)
 
     ... bindCoreDispatchTarget @
           tgt_router, targets_map,

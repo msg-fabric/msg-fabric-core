@@ -20,7 +20,6 @@
   "scripts": {
     "serve": "npx qsrv -p 8082 -f unittest.html -w ./_out",
     "clean": "rm _out/*",
-    "prebuild": "test -d ./node_modules || npm ci",
     "pretest": "npm -s run build",
     "build": "rollup --config",
     "watch": "rollup --config --watch",

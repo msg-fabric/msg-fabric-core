@@ -1,5 +1,4 @@
-import { o_assign, o_create  } from './builtins.jsy'
-import { ao_fence_sink, ao_feeder_v } from 'roap'
+import { o_assign, o_create } from './builtins.jsy'
 import { DiscoveryBase } from './discovery.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'
 
@@ -19,7 +18,7 @@ export class TargetRouter extends DiscoveryBase ::
 
   _initTargets() :: return new Map()
   _on_error(scope, err) :: console.error @ 'target', scope, err
-  _on_stream_error(err) :: console.error @ 'stream target', err
+  _on_stream_error(err) :: this._on_error('stream', err)
 
   newTargetId() :: return this.randId(4)
 
@@ -33,30 +32,32 @@ export class TargetRouter extends DiscoveryBase ::
   ready : Promise<Boolean>
 
   addTarget(id_target, target, opt) : {id_target, id_route}
-  removeTarget(id_target) : Boolean
-  removeTarget({id_target}) : Boolean
-
-  getTarget(id_target) : function(pkt, pktctx)
   hasTarget(id_target) : Boolean
+  getTarget(id_target) : function(pkt, pktctx)
+  removeTarget(id_target) : Boolean
+  removeTarget([id_route, id_target]) : Boolean
 
-  xresp(id_target) : target management object
-  xtgt(id_target) : target management object
+  xtgt: id_target => xstream(id_target, router.xtgt_api)
+  xresp: id_target => xstream(id_target, router.xres_api)
+  xstream(id_target, xapi) : tgt_stream_obj<xapi>
+    where tgt_stream_obj is {__proto__: xapi, id, stream, abort, when_done, tgt_router}
 
   */
 
-  addReply(...args) :: return this.xresp().with(...args)
+  addReply(opt) :: return this.xresp().with(opt)
 
-  addStream(id_target, opt) ::
-    let f_out = ao_fence_sink()
-    f_out.id = this.addTarget(id_target, ao_feeder_v(f_out), opt)
-    return f_out
+  addStream(id_target, async_target) ::
+    let res = this.xtgt(id_target)
+    res.when_run = async_target(res)
+      .catch(this._on_stream_error)
+    return res
 
-  addStreamTarget(id_target, async_target, opt) ::
-    let f_out = this.addStream(id_target, opt)
-
-    // async_target(stream, target_router) : promise
-    // where stream is an async generator -- for await [pkt, ctx] of stream
-    ;(f_out.when_run = async_target(f_out, this))
-      .catch(opt && opt.on_error || this._on_stream_error)
-    return f_out.id
+  async removeAfter(id, p_done, opt) ::
+    try ::
+      await p_done
+    catch err ::
+      this._on_error('after', err)
+    finally ::
+      if id ::
+        this.removeTarget(id)
 
