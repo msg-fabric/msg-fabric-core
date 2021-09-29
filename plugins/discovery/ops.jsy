@@ -1,0 +1,64 @@
+import { o_assign } from '../../code/builtins.jsy'
+import { ao_defer_v } from '../../code/timeouts.jsy'
+
+
+export const disco_base = /* #__PURE__ */ @{}
+  async _disco_all(discovery_fns) ::
+    let q=[]
+    for let fn of discovery_fns ::
+      q.push @ this._disco_one(fn)
+
+    for let p of q ::
+      await p
+
+    this.answer(null)
+
+  async _disco_one(fn_disco) ::
+    try ::
+      let res = await fn_disco(this.query)
+      if res === undefined ::
+        this.answer(res)
+    catch err ::
+      this.host._on_error('discovery', err)
+
+
+  async cached(host, discovery_fns, query) ::
+    let belt = this.cache.get(discovery_fns)
+    if ! belt ::
+      belt = host._disco_cache()
+      this.cache.set(discovery_fns, belt)
+
+    let p, {key} = query
+    for let cache of belt ::
+      if p = cache[key] ::
+        return p
+
+    belt[0][key] = p =
+      this.search @
+        host, discovery_fns, query
+    return p
+
+
+
+export const disco_first = /* #__PURE__ */ @{}
+  __proto__: disco_base
+
+  cache: new WeakMap()
+
+  async search(host, discovery_fns, query) ::
+    let [p_search, _resolve] = ao_defer_v()
+    o_assign @ query, {host, p_search, done: false}
+
+    let self = @{}
+      __proto__: this, host, query,
+      answer(res) ::
+        query.done = true
+        if true === res || ! res ::
+          res = null // falsy and true is "already exists"
+        _resolve(res)
+
+    host._disco_timeout(self.answer)
+    self._disco_all(discovery_fns)
+    return p_search
+
+

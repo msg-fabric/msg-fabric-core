@@ -26,6 +26,8 @@ export default [
   ... pi_codecs(),
   ... pi_p2p(),
 
+  ... pi_discovery(),
+
   ... pi_direct(),
   ... pi_net(),
   ... pi_web(),
@@ -60,6 +62,11 @@ function * pi_codecs() {
 
   yield * add_plugin_jsy('cbor/all', 'mfpi-cbor-all')
   yield * add_plugin_jsy('cbor/index', 'mfpi-cbor')
+}
+
+function * pi_discovery() {
+  yield * add_plugin_jsy('discovery/all', 'mfpi-discovery-all')
+  yield * add_plugin_jsy('discovery/index', 'mfpi-discovery')
 }
 
 function * pi_direct() {

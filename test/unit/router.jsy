@@ -85,7 +85,7 @@ export default function test_hub_router() ::
 
     describe @ 'direct', @=> ::
       it @ 'should call router.routeDiscovery if route does not exist', @=>> ::
-        hub.router.discovery.push @
+        hub.router.addDiscovery @
           ({key}) => ::
             log @ 'discovery', @{} key
             return null
@@ -103,7 +103,7 @@ export default function test_hub_router() ::
 
 
       it @ 'should use router.routeDiscovery channel answer if route found', @=>> ::
-        hub.router.discovery.push @
+        hub.router.addDiscovery @
           ({key, host}) => ::
             log @ 'discovery', @{} key
             host.addPeer @ key, @:
@@ -123,7 +123,7 @@ export default function test_hub_router() ::
 
 
       it @ 'should use router.routeDiscovery function answer if route found', @=>> ::
-        hub.router.discovery.push @
+        hub.router.addDiscovery @
           ({key, host}) => ::
             log @ 'discovery', @{} key
             host.addRoute @ key, 
@@ -143,11 +143,11 @@ export default function test_hub_router() ::
 
 
       it @ 'should timeout router.routeDiscovery if no response', @=>> ::
-        hub.router._discoveryTimeout = resolve => ::
+        hub.router._disco_timeout = resolve => ::
           log @ 'createDiscoveryTimeout'
           setTimeout @ resolve, 10
 
-        hub.router.discovery.push @
+        hub.router.addDiscovery @
           ({key}) => ::
             log @ 'discovery, no return', @{} key
 

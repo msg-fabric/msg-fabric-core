@@ -3,12 +3,15 @@ import mfpi_json from 'msg-fabric-core/esm/mfpi-json.js'
 import mfpi_cbor from 'msg-fabric-core/esm/mfpi-cbor.js'
 import mfpi_p2p from 'msg-fabric-core/esm/mfpi-p2p-basic.js'
 
+import mfpi_discovery from 'msg-fabric-core/esm/mfpi-discovery.js'
+
 import mfpi_direct from 'msg-fabric-core/esm/mfpi-direct.js'
 import mfpi_web from 'msg-fabric-core/esm/mfpi-web.js'
 import mfpi_rpc from 'msg-fabric-core/esm/mfpi-rpc.js'
 
 let mfpis = [
   mfpi_p2p(),
+  mfpi_discovery(),
   mfpi_direct(),
   mfpi_web(),
   mfpi_rpc(),

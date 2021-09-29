@@ -1,3 +1,4 @@
 import mfpi_ids from '../plugins/ids/web.jsy'
+
 import FabricHub from './mf-cbor.jsy'
 export default FabricHub.plugin(mfpi_ids())

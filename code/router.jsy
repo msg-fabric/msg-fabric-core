@@ -1,12 +1,10 @@
 import { o_assign, o_create, is_func, as_func } from './builtins.jsy'
-import { DiscoveryBase } from './discovery.jsy'
 import { bindTimeouts } from './timeouts.jsy'
 import { bindCoreRouterAPI } from './router_core.jsy'
 import { base_channel, channel_kinds } from './channel.jsy'
 
-export class FabricRouter extends DiscoveryBase ::
+export class FabricRouter ::
   constructor(hub) ::
-    super()
     o_assign @ this, @{}
       timeouts: bindTimeouts(),
       _channel_: @{} __proto__: base_channel, router: this
@@ -44,9 +42,8 @@ export class FabricRouter extends DiscoveryBase ::
       this.addDynamic @ id_route, upstream, upstream_opt
 
 
-  async discoverRoute(id_route, rtrctx) ::
-    await this._discoverFirst @:
-      key: id_route, id_route, kind: 'route', rtrctx
+  discoverRoute(id_route, router_ctx) ::
+    // see plugins/discovery
 
 
   addPeer(id_route, channel, opt) ::

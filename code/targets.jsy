@@ -1,11 +1,9 @@
 import { o_assign, o_create } from './builtins.jsy'
-import { DiscoveryBase } from './discovery.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'
 
-export class TargetRouter extends DiscoveryBase ::
+export class TargetRouter ::
 
   constructor(id_route, router, hub) ::
-    super()
     let {randId} = hub, {timeouts, send, loopback} = router.router_ctx
     o_assign @ this, @{} timeouts, send, loopback, randId
 
@@ -22,9 +20,8 @@ export class TargetRouter extends DiscoveryBase ::
 
   newTargetId() :: return this.randId(4)
 
-  async discoverTarget(id_target, rtrctx) ::
-    await this._discoverFirst @:
-      key: id_target, id_target, kind: 'target', rtrctx
+  discoverTarget(id_target, pktctx) ::
+    // see plugins/discovery
 
 
   /* // from bindCoreTargetAPI

@@ -1,0 +1,40 @@
+import { o_assign, as_func } from '../../code/builtins.jsy'
+import { disco_first } from './ops.jsy'
+
+export function discovery_plugin(opt={}) ::
+  let _lut_discover_fn = @{}
+    'function': (accept, fn) => q => accept(q) ? fn(q) : void 0
+    'string': (accept, fn) => q => q.key.startsWith(accept) ? fn(q) : void 0
+    'object'(accept, fn) ::
+      as_func(accept.test) // regexp or similar
+      return q => accept.test(q.key) ? fn(q) : void 0
+
+
+  let _disco_ = @{}
+    _disco_cache() :: return this.timeouts.hashbelt(opt.ms_rotate || 15000)
+    _disco_timeout(resolve) :: return this.timeouts(opt.ms_timeout || 2000, resolve)
+
+    addDiscovery(accept, fn_discover) ::
+      if fn_discover ::
+        accept = _lut_discover_fn[typeof accept](accept, fn_discover)
+      this.discovery = [... (this.discovery || []), as_func(accept)]
+
+
+  return @{}
+    subclass(Hub) ::
+
+      o_assign @ Hub.FabricRouter.prototype, _disco_, @{}
+        async discoverRoute(id_route, router_ctx) ::
+          let fns = this.discovery
+          if fns ::
+            let query = @{} key: id_route, id_route, kind: 'route', router_ctx
+            await disco_first.cached(this, this.discovery, query)
+
+
+      o_assign @ Hub.TargetRouter.prototype, _disco_, @{}
+        async discoverTarget(id_target, pktctx) ::
+          let fns = this.discovery
+          if fns ::
+            let query = @{} key: id_target, id_target, kind: 'target', pktctx
+            await disco_first.cached(this, fns, query)
+
