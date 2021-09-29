@@ -11,14 +11,9 @@ export class FabricHub ::
 
   static create(...args) :: return new this(...args)
 
-  constructor(options) ::
+  constructor(... opt_args) ::
     let self = o_create(this)
-
-    if null == options :: options = {}
-    else if 'object' !== typeof options ::
-      options = @{} id_route: options
-    this.options = options
-
+    let options = this.options = this._initOptions({}, opt_args)
 
     _pi_apply @ ['pre'], this._plugins_, self
 
@@ -35,8 +30,15 @@ export class FabricHub ::
     _pi_apply @ [null, 'post'], this._plugins_, self
     return self
 
+  _initOptions(options, opt_args) ::
+    for let opt of opt_args ::
+      switch typeof opt ::
+        case 'object': o_assign(options, opt) ; break
+        case 'string': options.id_route = opt ; break
+    return options
+
   _initHubRouter(options) ::
-    return new this.constructor.FabricRouter(this)
+    return new this.constructor.FabricRouter(this, options)
   _initLocal(options) ::
     return this.localRoute(options.id_route)
 
@@ -48,6 +50,7 @@ export class FabricHub ::
     if ! is_private :: this.router.publishRoute(local)
     return local
 
+  get timeouts() :: return this.router.timeouts
   newRouteId() ::
     return `${this.options.id_prefix||''}${this.randId(5)}`
 

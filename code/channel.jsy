@@ -1,4 +1,4 @@
-import { o_assign, o_create, is_array, p_res, _unref } from './builtins.jsy'
+import { o_assign, o_create, is_array, p_res, _ref, _unref } from './builtins.jsy'
 
 
 export const channel_kinds = @{}
@@ -130,6 +130,8 @@ export function local_channel() ::
     dispatch: this.dispatch,
     send: (...args) => send_pkt @ as_send_pkt(args)
     send_pkt
+    ref() :: _ref(port2)
+    unref() :: _unref(port2)
 
   _unref(port2)
   return channel

@@ -43,8 +43,7 @@ function _test_target_router_with(fn_add_target) ::
 
     beforeEach @::>
       log = newLog()
-      hub = Hub.create('$unit$')
-      hub.router.timeouts.changeInterval @ 50
+      hub = Hub.create('$unit$', {ms_interval: 50})
 
       fn_add_target(hub, log)
 

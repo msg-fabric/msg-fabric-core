@@ -4,9 +4,9 @@ import { bindCoreRouterAPI } from './router_core.jsy'
 import { base_channel, channel_kinds } from './channel.jsy'
 
 export class FabricRouter ::
-  constructor(hub) ::
+  constructor(hub, {ms_interval}) ::
     o_assign @ this, @{}
-      timeouts: bindTimeouts(),
+      timeouts: bindTimeouts(ms_interval, err => this._on_error('timer', err)),
       _channel_: @{} __proto__: base_channel, router: this
       public_routes: this._initPublicRoutes()
 
@@ -22,6 +22,9 @@ export class FabricRouter ::
   _initPublicRoutes() :: return new Map()
 
   _on_error(scope, err) :: console.error @ 'router', scope, err
+
+  ref() :: this.loopback.ref()
+  unref() :: this.loopback.unref()
 
   async publishRoute(route) ::
     await route.ready

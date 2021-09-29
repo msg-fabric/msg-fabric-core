@@ -1,33 +1,39 @@
-import { o_assign, o_defprop, is_func, as_func, _unref } from './builtins.jsy'
+import { o_assign, o_defprop, is_func, as_func, _unref, _ref } from './builtins.jsy'
 
-import { ao_defer_v } from 'roap'
+import { ao_defer_v, ao_fence_v } from 'roap'
 export { ao_defer_v, ao_fence_v, ao_push_stream } from 'roap'
 
 
-const timeout_ttl_base = @{}
+const timeout_ttl = @{}
   extend: false
   reset() :: this.extend = true; return this
   with_reset(fn) :: return (...args) => @ this.reset(), fn(...args)
-  bind_cleanup(cleanup_fns) ::
-    return async cancel => ::
-      try ::
-        for const cleanup of cleanup_fns ::
-          if cleanup && ! this.extend ::
-            await cleanup(this)
 
-      finally ::
-        if ! this.extend ::
-          await cancel()
+  create_ttl(query_ttl) ::
+    let self = @{} __proto__: this,
+      async _query_ttl(cancel) ::
+        try ::
+          await query_ttl(self)
+        finally ::
+          if ! self.extend ::
+            cancel()
+          self.extend = false
 
-        this.extend = false
+    return self
 
 
-export function bindTimeouts(ms_interval) ::
-  const q=[]
+export function bindTimeouts(ms_interval, on_fn_error) ::
+  ms_interval = (0 | ms_interval) || 67 // 15 ticks per second
 
-  tick_interval(ms_interval, q)
+  const qz = [[], []]
+  const tid = _unref @
+    setInterval(tick, ms_interval, Promise.resolve(add))
+
+  let [f_tick, resolve_tick] = ao_fence_v()
+  let [f_empty, resolve_empty] = ao_fence_v()
+  
   return o_assign @ add, @{}
-    add, interval
+    add, f_tick, f_empty
 
     race(ms_min_timeout, ...promises) ::
       let dp = ao_defer_v()
@@ -35,72 +41,68 @@ export function bindTimeouts(ms_interval) ::
       add(ms_min_timeout, dp[1])
       return Promise.race(promises)
 
-    absent: (ms_min_timeout, callback, value) =>
-      add @ ms_min_timeout, @=> callback @
-        is_func(value) ? value() : value
+    interval(ms_opt, callback) ::
+      ms_opt = _as_ms_opt(ms_opt, {z: 1})
+      as_func(callback)
 
-    hashbelt: (ms_min_interval, max_length=4, create=Object) => ::
-      interval @ ms_min_interval, @=> ::
+      let x = @{}
+        cancel() :: x = null
+        interval() ::
+          if x :: callback(x.cancel)
+          if x :: x.schedule()
+        schedule() ::
+          if x ::
+            add @ ms_opt, x.interval
+            return x.cancel
+
+      return x.schedule()
+
+    hashbelt(ms_opt, max_length=4, create=Object) ::
+      let belt = [create()]
+      add.interval @ ms_opt, rotate_belt
+      return belt
+
+      function rotate_belt() ::
         while max_length <= belt.length ::
           belt.pop()
         belt.unshift @ create()
 
-      const belt = [create()]
-      return belt
-
-    ttl(ms_min_interval, ... cleanup_fns) ::
-      const ttl = @{} __proto__: timeout_ttl_base
-      ttl.cancel = interval @ ms_min_interval || 60000, ttl.bind_cleanup(cleanup_fns)
+    ttl(ms_opt, query_ttl) ::
+      let ttl = timeout_ttl.create_ttl(query_ttl)
+      ttl.cancel = add.interval @
+        _as_ms_opt(ms_opt, {ms: 60000, z:1})
+        ttl._query_ttl
       return ttl
 
-    _on_error(err) :: console.error(err)
 
-
-  function add(ms_min_timeout, callback) ::
+  function add(ms_opt, callback) ::
     if callback ::
-      let idx = Math.max @ 1, Math.ceil @ (0|ms_min_timeout) / ms_interval
-      let qi = q[idx] || []
-      if 0 === qi.length :: q[idx] = qi
-      qi.push @ as_func @ callback
+      ms_opt = _as_ms_opt(ms_opt)
 
+      let idx = Math.max @ 1, Math.ceil @ ms_opt.ms / ms_interval
 
-  function interval(ms_min_interval, callback) ::
-    as_func(callback)
-    let cancel = @:: interval = null
-    let interval = @::
-      if null !== interval ::
-        callback(cancel)
-        add @ ms_min_interval, interval
+      let z = 0|ms_opt.z
+      let _q = qz[z]
+      if ! _q :: _q = qz[z] = []
 
-    add @ ms_min_interval, interval
-    return cancel
+      let _qi = _q[idx]
+      if ! _qi :: _q[idx] = _qi = []
 
+      _qi.push @ as_func @ callback
 
-  function tick_interval(ms, lq) ::
-    ms_interval = (0 | ms) || 67
-
-    function tick() ::
-      const tip = lq.shift()
-      if tip ::
-        let p0=Promise.resolve(add)
+  function tick(p_self) ::
+    let _q, tip
+    for _q of qz ::
+      if tip = _q.shift() ::
         for let fn of tip ::
-          p0.then(fn).catch(add._on_error)
+          p_self.then(fn).catch(on_fn_error)
 
-      else if lq !== q && 0 === lq.length ::
-        clearInterval(tid) // done
+    if 0 === qz[0].length ::
+      resolve_empty(add)
+    resolve_tick(add)
 
-    const tid = setInterval @ tick, ms_interval
-    _unref(tid)
-
-    add.changeInterval = ms => ::
-      if ms_interval != ms ::
-        // fork and finish current queue
-        if 0 !== lq.length ::
-          lq = lq.splice(0, lq.length)
-        else clearInterval(tid)
-
-        // start using new interval
-        tick_interval(ms, q)
-
-      return add
+function _as_ms_opt(opt, def) ::
+  return 'number' === typeof opt
+    ? {... def, ms: opt}
+    : {... def, ... opt}
 

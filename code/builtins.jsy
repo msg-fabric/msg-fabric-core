@@ -24,3 +24,5 @@ export const p_then = (fn, v) =>
 export const _unref = o =>
   o.unref ? (o.unref(), o) : o
 
+export const _ref = o =>
+  o.ref ? (o.ref(), o) : o

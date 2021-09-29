@@ -1,10 +1,7 @@
 import MsgFabric from 'msg-fabric-core/esm/core.js'
 
 const hub = MsgFabric.create()
-
-
-// nodejs hack to keep the process open while asyncs are processed
-let tid = setTimeout(Boolean, 1000)
+hub.router.ref() // keep alive despite no active I/O
 
 
 const tgt_addr = hub.local.addTarget(null, pkt => {
@@ -27,4 +24,4 @@ let ans = await reply.response()
 console.log('Received reply', ans)
 
 
-if (tid.unref) tid.unref()
+hub.router.unref()
