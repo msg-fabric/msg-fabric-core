@@ -34,18 +34,6 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
 
 
 export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
-  function addTarget(id_target, target) ::
-    let id = @[] id_route, id_target || tgt_router.newTargetId()
-    if null != target ::
-      targets_map.set @ id[1], as_func(target)
-    return id
-
-  function xstream(id_target, xapi) ::
-    let {stream, when_done, abort, push} = ao_push_stream(true)
-    let id = addTarget(id_target, push)
-    tgt_router.removeAfter(id, when_done)
-    return @{} __proto__: xapi, id, stream, abort, when_done, tgt_router
-
   return @{}
     addTarget
     hasTarget: id_target => targets_map.has(id_target)
@@ -64,4 +52,16 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
     ... bindCoreDispatchTarget @
           tgt_router, targets_map,
           id_route, router
+
+  function addTarget(id_target, target) ::
+    let id = @[] id_route, id_target || tgt_router.newTargetId()
+    if null != target ::
+      targets_map.set @ id[1], as_func(target)
+    return id
+
+  function xstream(id_target, xapi) ::
+    let {stream, when_done, abort, push} = ao_push_stream(true)
+    let id = addTarget(id_target, push)
+    tgt_router.removeAfter(id, when_done)
+    return @{} __proto__: xapi, id, stream, abort, when_done, tgt_router
 
