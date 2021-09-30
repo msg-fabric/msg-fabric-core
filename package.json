@@ -54,6 +54,6 @@
     "test": "cd test; npm -s run test",
     "precompress": "rm esm/* ; npm -s run build",
     "compress": "gzip -k esm/*.min.js ; brotli esm/*.min.js",
-    "prepublish": "npm -s run build ; cd test ; npm -s run test"
+    "prepublish": "npm -s run clean && npm -s run build && cd test && npm -s run test"
   }
 }
