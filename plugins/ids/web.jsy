@@ -1,7 +1,7 @@
-import { u8_to_base64 } from 'u8-utils/esm/web/base64.js'
+import { u8_to_base64url } from 'u8-utils/esm/web/base64.js'
 
 export function random_base64(n) ::
-  return u8_to_base64 @
+  return u8_to_base64url @
     crypto.getRandomValues(new Uint8Array(n))
 
 export default web_ids_plugin

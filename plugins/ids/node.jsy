@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 
 export function random_base64(n) ::
-  return randomBytes(n).toString('base64').replace(/=+$/, '')
+  return randomBytes(n).toString('base64url')
 
 export default node_ids_plugin
 export function node_ids_plugin() ::
