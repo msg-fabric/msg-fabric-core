@@ -76,19 +76,25 @@ export function bindTimeouts(ms_interval, on_fn_error) ::
 
 
   function add(ms_opt, callback) ::
-    if callback ::
-      ms_opt = _as_ms_opt(ms_opt)
+    let res
+    if ! callback ::
+      // default to a promise
+      [res, callback] = ao_defer_v()
 
-      let idx = Math.max @ 1, Math.ceil @ ms_opt.ms / ms_interval
+    ms_opt = _as_ms_opt(ms_opt)
 
-      let z = 0|ms_opt.z
-      let _q = qz[z]
-      if ! _q :: _q = qz[z] = []
+    let idx = Math.max @ 1, Math.ceil @ ms_opt.ms / ms_interval
 
-      let _qi = _q[idx]
-      if ! _qi :: _q[idx] = _qi = []
+    let z = 0|ms_opt.z
+    let _q = qz[z]
+    if ! _q :: _q = qz[z] = []
 
-      _qi.push @ as_func @ callback
+    let _qi = _q[idx]
+    if ! _qi :: _q[idx] = _qi = []
+
+    _qi.push @ as_func(callback)
+
+    return res
 
   function tick(p_self) ::
     let _q, tip
