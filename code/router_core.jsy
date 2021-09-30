@@ -27,7 +27,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
     if undefined === pkt || null === pkt :: return
 
     try ::
-      const id_route = pkt[0] || ''
+      let id_route = pkt[0] || ''
       let route = id_route
         ? routes_map.get(id_route)
         : (pktctx.channel || {}).peerRoute
@@ -36,7 +36,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
         route = await resolveRoute(id_route, true, true)
 
         if undefined === route ::
-          const channel = pktctx.channel
+          let channel = pktctx.channel
           return channel && channel.undeliverable(pkt, 'route')
 
       await route(pkt, pktctx)
@@ -75,18 +75,21 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
   return @{}
     addRoute(id_route, route, opt) ::
       as_func(route)
-      if ! opt :: opt = {}
+
+      if !opt || true === opt ::
+        opt = {override: !!opt}
+
       if ! opt.override && routes_map.has(id_route) ::
         return
 
       routes_map.set @ id_route, route
-      const cancel = @=> this.removeRoute @ id_route, route
+      let cancel = @=> this.removeRoute @ id_route, route
 
       if ! opt.ms_ttl ::
         return @{} route, cancel
 
       else ::
-        const ttl = hub_router.timeouts.ttl @ opt.ms_ttl,
+        let ttl = hub_router.timeouts.ttl @ opt.ms_ttl,
           opt.pre_cancel, cancel, opt.on_cancel
         ttl.route = false === opt.ttl_reset ? route
           : route = ttl.with_reset(route)

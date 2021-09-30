@@ -11,19 +11,19 @@ export const base_channel = @{}
   to_cbor_encode() :: throw new Error @ 'Not serializable'
 
   undeliverable(pkt, mode) ::
-    const {0: id_route, 1: id_target} = pkt
+    let {0: id_route, 1: id_target} = pkt
     console.warn @ '~~ undeliverable',
       @{} mode, id_route, id_target
 
   on_send_error(err) ::
     console.warn @ '~~ channel send error', err
 
-  addRoute(id_route, override) ::
+  addRoute(id_route, opt) ::
     return this.router.addPeer @
-      id_route, this, override
+      id_route, this, opt
 
   get peerRoute() ::
-    const p2p = this.p2p
+    let {p2p} = this
     return p2p ? p2p.peerRoute.bind(p2p) : Boolean
 
   close() :: return false
@@ -42,7 +42,7 @@ export const base_channel = @{}
 const _shapeof = v => 'string' === typeof v ? 's' : 'v'
 export function as_send_pkt(args) ::
   if 1 === args.length :: return args[0]
-  const k = args.map(_shapeof)
+  let k = args.map(_shapeof)
   return as_send_pkt[k] @ ...args
 
 o_assign @ as_send_pkt, @{}
@@ -62,7 +62,7 @@ function pkt_o3(addr, meta, body) ::
 
 
 export function raw_channel(p2p, unpack, chan_ex) ::
-  const channel = o_assign @ o_create(this._channel_), chan_ex
+  let channel = o_assign @ o_create(this._channel_), chan_ex
 
   if null != p2p ::
     if ! p2p.hello || ! p2p.peerRoute ::
@@ -70,8 +70,8 @@ export function raw_channel(p2p, unpack, chan_ex) ::
 
     channel.p2p = p2p.initForChannel(channel)
 
-  const r_disp = this.dispatch
-  const recv = unpack
+  let r_disp = this.dispatch
+  let recv = unpack
     ? async pkt => r_disp @ await unpack(await pkt), channel
     : async pkt => r_disp @ await pkt, channel
 

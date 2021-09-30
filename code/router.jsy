@@ -10,7 +10,7 @@ export class FabricRouter ::
       _channel_: @{} __proto__: base_channel, router: this
       public_routes: this._initPublicRoutes()
 
-    const self = o_create(this)
+    let self = o_create(this)
     if this._skip_bind_api ::
       return self
 
@@ -28,7 +28,7 @@ export class FabricRouter ::
 
   async publishRoute(route) ::
     await route.ready
-    const id_route = route.id_route
+    let id_route = route.id_route
     if 'string' === typeof id_route ::
       this.public_routes.set @ id_route, route
       return route
@@ -40,7 +40,7 @@ export class FabricRouter ::
       upstream.dispatch || upstream.send || upstream
 
   upstreamRoute(id_route) ::
-    const { upstream, upstream_opt } = this
+    let { upstream, upstream_opt } = this
     if upstream ::
       this.addDynamic @ id_route, upstream, upstream_opt
 
@@ -50,9 +50,9 @@ export class FabricRouter ::
 
 
   addPeer(id_route, channel, opt) ::
-    const disp = channel.dispatch || channel.send
-    const res = this.addRoute @ id_route, disp, opt
-    if channel.when_closed ::
+    let disp = channel.dispatch || channel.send
+    let res = this.addRoute @ id_route, disp, opt
+    if res && channel.when_closed ::
       channel.when_closed.then @ res.cancel
     return res
 
