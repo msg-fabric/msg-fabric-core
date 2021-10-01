@@ -45,8 +45,8 @@ export class TargetRouter ::
 
   addStream(id_target, async_target) ::
     let res = this.xtgt(id_target)
-    res.when_run = async_target(res)
-      .catch(this._on_stream_error)
+    res.when_done = async_target(res)
+      .catch(err => this._on_stream_error(err))
     return res
 
   async removeAfter(id, p_done, opt) ::
