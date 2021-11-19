@@ -16,7 +16,8 @@ export class TargetRouter ::
 
   _initTargets() :: return new Map()
   _on_error(scope, err) :: console.error @ 'target', scope, err
-  _on_stream_error(err) :: this._on_error('stream', err)
+  get _on_stream_error() ::
+    return err => this._on_error('stream', err)
 
   newTargetId() :: return this.randId(4)
 
@@ -43,10 +44,9 @@ export class TargetRouter ::
 
   addReply(opt) :: return this.xresp().with(opt)
 
-  addStream(id_target, async_target) ::
+  addStream(id_target, async_target, on_error=this._on_stream_error) ::
     let res = this.xtgt(id_target)
-    res.when_done = async_target(res)
-      .catch(err => this._on_stream_error(err))
+    res.when_done = async_target(res).catch(on_error)
     return res
 
   async removeAfter(id, p_done, opt) ::
