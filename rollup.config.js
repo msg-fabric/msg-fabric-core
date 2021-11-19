@@ -35,13 +35,13 @@ export default [
   ... pi_rpc(),
 
   [
-    ... add_core_jsy('mf-json', 'mf-json', true),
-    ... add_core_jsy('mf-cbor', 'mf-cbor', true),
+    ... add_core_jsy('mf/mf-json', 'mf-json', true),
+    ... add_core_jsy('mf/mf-cbor', 'mf-cbor', true),
 
-    ... add_core_jsy('mf-json-web', 'mf-json-web', true),
-    ... add_core_jsy('mf-cbor-web', 'mf-cbor-web', true),
-    ... add_core_jsy('mf-json-node', 'mf-json-node', false),
-    ... add_core_jsy('mf-cbor-node', 'mf-cbor-node', false),
+    ... add_core_jsy('mf/mf-json-web', 'mf-json-web', true),
+    ... add_core_jsy('mf/mf-cbor-web', 'mf-cbor-web', true),
+    ... add_core_jsy('mf/mf-json-node', 'mf-json-node', false),
+    ... add_core_jsy('mf/mf-cbor-node', 'mf-cbor-node', false),
   ],
 ].flat(9)
 

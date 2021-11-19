@@ -1,0 +1,15 @@
+import mfpi_cbor from '../../plugins/cbor/index.jsy'
+import mfpi_p2p from '../../plugins/p2p-basic/index.jsy'
+import mfpi_discovery from '../../plugins/discovery/index.jsy'
+import mfpi_direct from '../../plugins/direct/index.jsy'
+import mfpi_web from '../../plugins/web/index.jsy'
+
+import FabricHub from '../core.jsy'
+
+export default FabricHub.plugin @
+  mfpi_cbor()
+  mfpi_p2p()
+  mfpi_discovery()
+  mfpi_direct()
+  mfpi_web()
+
