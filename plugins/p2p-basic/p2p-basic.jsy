@@ -11,41 +11,41 @@ export function bind_basic_p2p(hub) ::
         router: @{} value: channel.router
 
     async hello(ms_timeout=500) ::
-      const { channel, router } = this
-      const id_reply = hub.randId(6)
-      const p = new Promise @ (resolve, reject) => ::
-        this[ '_m$_' + id_reply ] = resolve
-        if ms_timeout ::
-          router.timeouts @ ms_timeout, reject
+      let { channel, router } = this
+      let id_reply = hub.randId(6)
+      let dp = router.timeouts.ao_defer_v()
+      this[ '_m$_' + id_reply ] = dp[1]
+      if ms_timeout ::
+        router.timeouts @ ms_timeout, dp[1]
 
       await channel.send @ '', 'hello', @{}
         version: 'basic', id_reply, ts: new Date
 
       let ans
-      try :: ans = await p
+      try :: ans = await dp[0]
       finally ::
         delete this[ '_m$_' + id_reply ]
 
-      const { public_routes } = router
-      for const id_route of Object(ans).routes || [] ::
-        if undefined !== public_routes.get(id_route) ::
-          continue // Keep local public routes local
-
-        channel.addRoute @ id_route, false
+      let { public_routes } = router
+      for let id_route of Object(ans).routes || [] ::
+        // Keep local public routes local
+        if ! public_routes.get(id_route) ::
+          channel.addRoute @ id_route, false
 
       return ans
 
     peerRoute(pkt) ::
-      const {1: id_target, body} = pkt
-      const fn = this[ '_m$_' + id_target ]
+      let {1: id_target, body} = pkt
+      let fn = this[ '_m$_' + id_target ]
       return fn ? fn.call(this, body) : null
 
     _m$_hello(body) ::
-      if 'basic' !== Object(body).version :: return
-      if ! body.id_reply :: return
+      let {version, id_reply} = Object(body)
+      if 'basic' !== version :: return
+      if ! id_reply :: return
 
-      return this.channel.send @ '', body.id_reply, @{}
-        version: 'basic', ts: new Date
+      return this.channel.send @ '', id_reply, @{}
+        version, ts: new Date
         routes: Array.from @
           this.router.public_routes.keys()
 
