@@ -1,7 +1,9 @@
 import { o_assign, as_func } from '../../code/builtins.jsy'
-import { disco_first } from './ops.jsy'
+import { DiscoFirst } from './ops.jsy'
 
 export function discovery_plugin(opt={}) ::
+  let disco_first = new DiscoFirst()
+
   let _lut_discover_fn = @{}
     'function': (accept, fn) => q => accept(q) ? fn(q) : void 0
     'string': (accept, fn) => q => q.key.startsWith(accept) ? fn(q) : void 0
@@ -28,7 +30,7 @@ export function discovery_plugin(opt={}) ::
           let fns = this.discovery
           if fns ::
             let query = @{} key: id_route, id_route, kind: 'route', router_ctx
-            await disco_first.cached(this, this.discovery, query)
+            await disco_first.cached(this, fns, query)
 
 
       o_assign @ Hub.TargetRouter.prototype, _disco_, @{}

@@ -1,8 +1,8 @@
-import { o_assign } from '../../code/builtins.jsy'
-import { ao_defer_v } from '../../code/timeouts.jsy'
 
+export class DiscoFirst ::
+  constructor() ::
+    this._cache = new WeakMap()
 
-export const disco_base = /* #__PURE__ */ @{}
   async _disco_all(discovery_fns) ::
     let q=[]
     for let fn of discovery_fns ::
@@ -23,10 +23,10 @@ export const disco_base = /* #__PURE__ */ @{}
 
 
   async cached(host, discovery_fns, query) ::
-    let belt = this.cache.get(discovery_fns)
+    let belt = this._cache.get(discovery_fns)
     if ! belt ::
       belt = host._disco_cache()
-      this.cache.set(discovery_fns, belt)
+      this._cache.set(discovery_fns, belt)
 
     let p, {key} = query
     for let cache of belt ::
@@ -38,16 +38,9 @@ export const disco_base = /* #__PURE__ */ @{}
         host, discovery_fns, query
     return p
 
-
-
-export const disco_first = /* #__PURE__ */ @{}
-  __proto__: disco_base
-
-  cache: new WeakMap()
-
   async search(host, discovery_fns, query) ::
-    let [p_search, _resolve] = ao_defer_v()
-    o_assign @ query, {host, p_search, done: false}
+    let [p_search, _resolve] = host.timeouts.ao_defer_v()
+    Object.assign @ query, {host, p_search, done: false}
 
     let self = @{}
       __proto__: this, host, query,
@@ -60,5 +53,4 @@ export const disco_first = /* #__PURE__ */ @{}
     host._disco_timeout(self.answer)
     self._disco_all(discovery_fns)
     return p_search
-
 
