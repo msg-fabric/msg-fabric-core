@@ -8,7 +8,6 @@ const BasicHub = require('msg-fabric-core')
 
 const tcp = require('msg-fabric-core/cjs/plugin-net-tcp')
 const tls = require('msg-fabric-core/cjs/plugin-net-tls')
-// const shadow = require('msg-fabric-core/cjs/plugin-shadow')
 
 const TestNetHub = BasicHub.plugin( tcp(), tls() )
 
