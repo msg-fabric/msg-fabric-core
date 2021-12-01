@@ -32,9 +32,9 @@ export class FabricHub ::
 
   _initOptions(options, opt_args) ::
     for let opt of opt_args ::
-      switch typeof opt ::
-        case 'object': o_assign(options, opt) ; break
-        case 'string': options.id_route = opt ; break
+      if 'string' === typeof opt ::
+        options.id_route = opt
+      else o_assign(options, opt)
     return options
 
   _initHubRouter(options) ::
@@ -51,8 +51,8 @@ export class FabricHub ::
     return local
 
   get timeouts() :: return this.router.timeouts
-  newRouteId() ::
-    return `${this.options.id_prefix||''}${this.randId(5)}`
+  newRouteId(path, opt=this.options) ::
+    return `${opt.id_prefix||''}${path||''}${this.randId(5)}${opt.id_suffix||''}`
 
   randId(n) :: return Math.random().toString(36).slice(2)
 
