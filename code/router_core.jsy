@@ -46,38 +46,40 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
       pktctx.channel = undefined // release channel referenece
 
   function _resolveRoute0(id_route) ::
-    let route = routes_map.get(id_route)
-    if undefined !== route :: return route
-
-    let idx
-    while -1 !== @ idx = id_route.lastIndexOf('.', idx) ::
+    let idx, route = routes_map.get(id_route)
+    // search for shared path routes based on '.' seperator
+    while undefined === route && (-1 !== @ idx = id_route.lastIndexOf('.', idx)) ::
       route = routes_map.get @ id_route.slice(0, idx--)
-      if undefined !== route ::
-        return route
+    return route
 
   async function resolveRoute(id_route, allowDiscover, allowUpstream) ::
     let route = _resolveRoute0(id_route)
+    if undefined !== route :: return route
 
-    if undefined === route && allowDiscover ::
+    if allowDiscover ::
       await hub_router.discoverRoute(id_route, router_ctx)
       route = _resolveRoute0(id_route)
+      if undefined !== route :: return route
 
-      if undefined === route && allowUpstream ::
-        // otherwise just send upstream
-        await hub_router.upstreamRoute(id_route)
-        route = routes_map.get(id_route)
+    if allowUpstream ::
+      // otherwise send upstream
+      await hub_router.upstreamRoute(id_route)
+      route = routes_map.get(id_route)
 
     return route
 
 
 export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
   // Allow individual queries but not enumeration
+  let _use_override = {override: true}
+  let _use_existing = {override: false}
+
   return @{}
     addRoute(id_route, route, opt) ::
       as_func(route)
 
-      if !opt || true === opt ::
-        opt = {override: !!opt}
+      opt = true === opt ? _use_override
+        : opt || _use_existing
 
       if ! opt.override && routes_map.has(id_route) ::
         return

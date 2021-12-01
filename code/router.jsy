@@ -42,7 +42,7 @@ export class FabricRouter ::
   upstreamRoute(id_route) ::
     let { upstream, upstream_opt } = this
     if upstream ::
-      this.addDynamic @ id_route, upstream, upstream_opt
+      return this.addDynamic @ id_route, upstream, upstream_opt
 
 
   discoverRoute(id_route, router_ctx) ::
