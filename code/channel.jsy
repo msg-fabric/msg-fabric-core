@@ -40,26 +40,23 @@ export const base_channel = @{}
     return await this
 
 
-const _shapeof = v => 'string' === typeof v ? 's' : 'v'
 export function as_send_pkt(args) ::
-  if 1 === args.length :: return args[0]
-  let k = args.map(_shapeof)
-  return as_send_pkt[k] @ ...args
+  switch args.length ::
+    case 0: case 1:
+      return args[0]
 
-o_assign @ as_send_pkt, @{}
-  's,s,v': pkt_3, 's,s,s': pkt_3,
-  's,s,v,v': pkt_4, 's,s,s,v': pkt_4, 's,s,v,s': pkt_4, 's,s,s,s': pkt_4,
-  'v,v': pkt_o2, 'v,s': pkt_o2,
-  'v,v,v': pkt_o3, 'v,v,s': pkt_o3, 'v,s,s': pkt_o3,
+    case 2:
+      return @: ...args[0], body: args[1]
 
-function pkt_4(id_route, id_target, meta, body) ::
-  return @{} 0:id_route, 1:id_target, meta, body
-function pkt_3(id_route, id_target, body) ::
-  return @{} 0:id_route, 1:id_target, body
-function pkt_o2(addr, body) ::
-  if addr :: return o_assign @ {body}, addr
-function pkt_o3(addr, meta, body) ::
-  if addr :: return o_assign @ {meta, body}, addr
+    case 3:
+      return 's' === typeof args[0]
+        ? @: ...args[0], meta: args[1], body: args[2]
+        : @: 0: args[0], 1: args[1], body: args[2]
+
+    case 4:
+      return @: 0: args[0], 1: args[1], meta: args[2], body: args[3]
+
+  throw new TypeError()
 
 
 export function raw_channel(p2p, unpack, chan_ex) ::
