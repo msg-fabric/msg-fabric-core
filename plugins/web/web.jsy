@@ -1,6 +1,7 @@
 
 export function web_basic_api(hub, plugin_options) ::
   const yes = @=> true
+  let {hello} = plugin_options
 
   return @{}
     connect(tgt, options) ::
@@ -15,9 +16,7 @@ export function web_basic_api(hub, plugin_options) ::
 
       let [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
 
-      let dispatch = @
-        tgt_send.postMessage ? _web_postmsg
-        : tgt_send.send ? _web_send : null
+      let dispatch = tgt_send.postMessage || tgt_send.send
 
       let {codec} = options
       let args = @[] this.p2p || hub.p2p, dispatch.bind(tgt_send), codec
@@ -38,6 +37,31 @@ export function web_basic_api(hub, plugin_options) ::
       return channel
 
 
+    mc_connect(opt, tgt1, tgt2) ::
+      if 'string' === typeof opt ::
+        opt = {client_id: opt}
+
+      let mc = new MessageChannel()
+      tgt1.postMessage @ {hello, ...opt}, [mc.port1]
+      if !tgt2 || !tgt2.postMessage ::
+        return this.connect @ mc.port2, tgt2
+      else tgt2.postMessage @ {hello, ...opt}, [mc.port2]
+
+    mc_server(host, options) ::
+      let id_pre = options.channel_id || 'mcsv-'
+      host.addEventListener @ 'message', evt => ::
+        let {data} = evt
+        if data && hello == data.hello ::
+          evt.stopPropagation()
+
+          let res = this.connect @ evt.ports[0],
+            @{} ... options
+                channel_id: `${id_pre}${data.client_id}`
+
+          if options.on_connect ::
+            options.on_connect(res, data)
+
+
     p2p: plugin_options.p2p
 
 
@@ -45,8 +69,4 @@ export function web_basic_api(hub, plugin_options) ::
     tgt_recv.addEventListener @ 'message',
       evt => true === fn_accept(evt) && fn_recv_pkt(evt.data)
       @{} passive: true
-
-
-function _web_postmsg(pkt) :: this.postMessage(pkt)
-function _web_send(pkt) :: this.send(pkt)
 
