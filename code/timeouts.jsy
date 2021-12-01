@@ -35,6 +35,8 @@ export function bindTimeouts(ms_interval, on_fn_error) ::
   return o_assign @ add, @{}
     add, f_tick, f_empty
 
+    ao_defer_v, ao_fence_v,
+
     race(ms_min_timeout, ...promises) ::
       let dp = ao_defer_v()
       promises.push(dp[0])
