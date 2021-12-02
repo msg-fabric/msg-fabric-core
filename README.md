@@ -28,7 +28,7 @@ Inspired by:
 
 ## Documentation
 
-See [Reference docs](./docs/README.md) and [Examples](./examples/)
+See [reference docs](./docs/#readme) and [examples](./examples/#readme)
 
 ## Examples
 
