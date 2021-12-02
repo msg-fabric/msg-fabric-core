@@ -25,6 +25,21 @@ hub.connect('ws://«host»:«port»')
 hub.connect('wss://«host»:«port»')
 
 hub.web.connectWS( a_websocket )
+
+
+// MessageChannel connection to a web worker
+hub.web.mc_connect({}, a_web_worker)
+
+
+// MessageChannel connection to a service worker
+hub.web.mc_connect({}, navigator.serviceWorker.controller)
+```
+
+#### Web Workers and Service Workers
+
+```javascript
+// start a MessageChannel server in a Web Worker or Service Worker
+hub.web.mc_server(self)
 ```
 
 #### WebSocket Server: `ws` library

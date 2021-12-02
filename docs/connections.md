@@ -14,6 +14,10 @@ hub.web.connect( an_iframe )
 
 hub.web.connectWS( a_websocket )
 hub.web.connectStream( an_rtc_data_channel )
+
+hub.web.mc_server(self)
+hub.web.mc_connect({}, a_web_worker)
+hub.web.mc_connect({}, navigator.serviceWorker.controller)
 ```
 
 
@@ -40,7 +44,7 @@ hub.web.connectWS( a_websocket )
 
 ### Same-process connections
 
-See [plugins/direct](plugins/net/README.md)
+See [plugins/direct](../plugins/direct/README.md)
 
 ```javascript
 hub.direct.connect( hub_other )

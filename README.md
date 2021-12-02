@@ -28,10 +28,9 @@ Inspired by:
 
 ## Documentation
 
-[docs/README.md](./docs/README.md)
+- [Reference docs](./docs/README.md)
 
-- [Endpoint targets](./docs/endpoints.md) -- `hub.local.addStream` and `hub.local.addTarget`
-- [Channels and connections](./docs/connections.md) -- `hub.connect()`
+- [Examples](./exampels/)
 
 ## Examples
 
@@ -82,6 +81,11 @@ Works out of the box with Web APIs like:
 
  - `hub.web.connectWS()` for:
    - [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
+
+ - `hub.web.mc_server()` and `hub.web.mc_connect()` for:
+   - [Service Workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
+   - [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Worker)
+
 
 See [plugins/web](plugins/web/README.md)
 

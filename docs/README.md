@@ -1,14 +1,11 @@
 # MsgFabric reference
 
-- [Sending message packets][./send.md]
-- [Endpoint targets](./endpoints.md) -- `hub.local.addStream` and `hub.local.addTarget`
-
+- [Sending messages](./send.md) -- `hub.send()`
+- [Endpoint targets](./endpoints.md) -- `hub.local.addStream()` and `hub.local.addTarget()`
 - [Hub](./hub.md) -- `hub = MsgFabric.create()`
-
-- [Fabric Router](./router_fabric.md) -- `hub.router`
-- [Target Router](./router_targets.md) -- `hub.local`
-
-- [Channels and connections](./connections.md) -- `hub.connect()`
+  - [Channels and connections](./connections.md) -- `hub.connect()`
+  - [Target Router](./router_targets.md) -- `hub.local`
+  - [Fabric Router](./router_fabric.md) -- `hub.router`
 
 
 ### Premade MsgFabric Packages
