@@ -41,22 +41,35 @@ export const base_channel = @{}
 
 
 export function as_send_pkt(args) ::
+  let id, meta, body
   switch args.length ::
-    case 0: case 1:
-      return args[0]
+    case 0: return
+
+    case 1:
+      @ {meta, body} = id = args[0]
+      break
 
     case 2:
-      return @: ...args[0], body: args[1]
+      // args shape is [[id_route, id_target], body]
+      @ [id, body] = args
+      break
 
     case 3:
-      return 's' === typeof args[0]
-        ? @: ...args[0], meta: args[1], body: args[2]
-        : @: 0: args[0], 1: args[1], body: args[2]
+      if 'string' === typeof args[0] ::
+        // args shape is [id_route, id_target, body]
+        @ [,, body] = id = args
+      else ::
+        // args shape is [[id_route, id_target], meta, body]
+        @ [id, meta, body] = args
+      break
 
     case 4:
-      return @: 0: args[0], 1: args[1], meta: args[2], body: args[3]
+      @ [,, meta,body] = id = args
+      break
 
-  throw new TypeError()
+    default: throw new TypeError()
+
+  return {0:`${id[0]}`, 1:`${id[1]}`, body, ... meta && {meta}}
 
 
 export function raw_channel(p2p, unpack, chan_ex) ::
