@@ -18,13 +18,13 @@ export function bindXTargetAPI(router_ctx) ::
     on_reply: v => v[0].body
     absent: undefined
 
-    async response({ms_timeout, on_reply, absent}=this) ::
-      let res = await this.timeouts.race @
-        ms_timeout, this.stream.next()
+    async response(absent=this.absent) ::
+      let xt = this.timeouts
+      let res = await xt.race @
+        this.ms_timeout, this.stream.next()
 
-      return undefined !== res
-        ? on_reply(res.value)
-        : absent
+      return xt === res ? absent
+        : this.on_reply(res.value)
 
   return @{} xresp_api, xtgt_api
 

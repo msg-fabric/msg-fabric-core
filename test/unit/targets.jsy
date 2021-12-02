@@ -43,7 +43,7 @@ function _test_target_router_with(fn_add_target) ::
 
     beforeEach @::>
       log = newLog()
-      hub = Hub.create('$unit$', {ms_interval: 50})
+      hub = Hub.create('$unit$', {ms_interval: 20})
 
       fn_add_target(hub, log)
 
@@ -121,7 +121,7 @@ function _test_target_router_with(fn_add_target) ::
     it @ 'message with reply timeout', @::>
       const ts = new Date()
 
-      const no_reply = hub.local.addReply(10)
+      const no_reply = hub.local.addReply({ms_timeout: 10})
       expect(no_reply.response).to.be.a('function')
 
       const body = @{}
@@ -135,4 +135,5 @@ function _test_target_router_with(fn_add_target) ::
       let p = no_reply.response(absent)
       expect(p).to.be.fulfilled
       expect(p).to.eventually.be.equal(absent)
+      expect(await p).to.equal(absent)
 

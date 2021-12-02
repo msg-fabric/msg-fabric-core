@@ -29,7 +29,7 @@ export class TargetRouter ::
 
   ready : Promise<Boolean>
 
-  addTarget(id_target, target, opt) : {id_target, id_route}
+  addTarget(id_target, target, opt) : [id_route, id_target]
   hasTarget(id_target) : Boolean
   getTarget(id_target) : function(pkt, pktctx)
   removeTarget(id_target) : Boolean
@@ -49,12 +49,12 @@ export class TargetRouter ::
     res.when_done = async_target(res).catch(on_error)
     return res
 
-  async removeAfter(id, p_done, opt) ::
+  async removeAfter(id_target, p_done) ::
     try ::
       await p_done
     catch err ::
       this._on_error('after', err)
     finally ::
-      if id ::
-        this.removeTarget(id)
+      if id_target ::
+        this.removeTarget(id_target)
 

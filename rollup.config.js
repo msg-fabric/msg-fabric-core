@@ -19,7 +19,6 @@ const _cfg_min_ = process.env.NO_MINIFI ? null :
 
 
 export default [
-  ... add_core_jsy('core', 'core', true),
   ... add_core_jsy('all', 'all', false),
 
   ... pi_ids(),
@@ -35,6 +34,7 @@ export default [
   ... pi_rpc(),
 
   [
+    ... add_core_jsy('mf/core', 'core', true),
     ... add_core_jsy('mf/mf-json', 'mf-json', true),
     ... add_core_jsy('mf/mf-cbor', 'mf-cbor', true),
 

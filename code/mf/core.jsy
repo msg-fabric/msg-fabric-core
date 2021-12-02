@@ -1,0 +1,3 @@
+import { FabricHub } from '../hub.jsy'
+export default FabricHub.plugin()
+

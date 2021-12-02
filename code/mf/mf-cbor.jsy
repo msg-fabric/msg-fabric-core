@@ -4,7 +4,7 @@ import mfpi_discovery from '../../plugins/discovery/index.jsy'
 import mfpi_direct from '../../plugins/direct/index.jsy'
 import mfpi_web from '../../plugins/web/index.jsy'
 
-import FabricHub from '../core.jsy'
+import FabricHub from './core.jsy'
 
 export default FabricHub.plugin @
   mfpi_cbor()

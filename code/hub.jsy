@@ -51,20 +51,19 @@ export class FabricHub ::
     return local
 
   get timeouts() :: return this.router.timeouts
-  newRouteId(path, opt=this.options) ::
-    return `${opt.id_prefix||''}${path||''}${this.randId(5)}${opt.id_suffix||''}`
+  newRouteId(id_path, opt=this.options) ::
+    return `${opt.id_prefix||''}${id_path||''}${this.randId(5)}${opt.id_suffix||''}`
 
   randId(n) :: return Math.random().toString(36).slice(2)
 
   async connectUpstream(upstream) ::
     upstream = await upstream
-    let res = this.router.setUpstream(upstream)
-    if ! res ::
+    if ! upstream.peer_info ::
       upstream = await this.connect(upstream)
-      res = this.router.setUpstream(upstream)
-      if ! res :: throw new TypeError()
-
     await upstream.peer_info
+
+    let res = this.router.setUpstream(upstream)
+    if ! res :: throw new TypeError()
     return upstream
 
   connect(conn_url) ::

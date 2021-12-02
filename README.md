@@ -26,11 +26,18 @@ Inspired by:
 - [PouchDB](https://pouchdb.com/custom.html)'s excellent plugin model
 
 
+## Documentation
+
+[docs/README.md](./docs/README.md)
+
+- [Endpoint targets](./docs/endpoints.md) -- `hub.local.addStream` and `hub.local.addTarget`
+- [Channels and connections](./docs/connections.md) -- `hub.connect()`
+
 ## Examples
 
 ```javascript
-import FabricHub from 'msg-fabric-core' 
-const hub = FabricHub.create()
+import MsgFabric from 'msg-fabric-core' 
+const hub = MsgFabric.create()
 ```
 
 ##### Add a Target
@@ -61,7 +68,7 @@ console.log('Received reply', ans)
 
 ### Connections and Platforms
 
-##### Browser hub connections
+##### Web Browser connections
 
 Works out of the box with Web APIs like:
 
@@ -76,21 +83,10 @@ Works out of the box with Web APIs like:
  - `hub.web.connectWS()` for:
    - [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 
-
-```javascript
-hub.connect('ws://«host»:«port»')
-hub.connect('wss://«host»:«port»')
-
-hub.web.connect( a_message_channel.port1 )
-hub.web.connect( a_web_worker || self )
-hub.web.connect( an_iframe )
-
-hub.web.connectWS( a_websocket )
-hub.web.connectStream( an_rtc_data_channel )
-```
+See [plugins/web](plugins/web/README.md)
 
 
-##### NodeJS hub connections
+##### NodeJS connections
 
 Works out of the box with NodeJS APIs like:
  - `hub.tcp` for [`require('net')`](https://nodejs.org/api/net.html)
@@ -99,31 +95,6 @@ Works out of the box with NodeJS APIs like:
  - `hub.web` for WebSockets, tested with [ws](https://www.npmjs.com/package/ws) and [faye-websocket](https://www.npmjs.com/package/faye-websocket) libraries
 
 See [plugins/net](plugins/net/README.md)
-
-```javascript
-hub.connect('tcp://«host»:«port»')
-hub.connect('tls://«host»:«port»')
-
-hub.tcp.createServer()
-hub.tcp.connect({ host, port })
-
-hub.tls.createServer( tls_options )
-hub.tls.connect({ host, port })
-
-hub.direct_stream.connect( hub_other )
-
-// WebSockets also work server-side
-hub.web.connectWS( a_websocket )
-```
-
-
-##### Same-process hub connections
-
-See [plugins/direct](plugins/net/README.md)
-
-```javascript
-hub.direct.connect( hub_other )
-```
 
 
 ## License
