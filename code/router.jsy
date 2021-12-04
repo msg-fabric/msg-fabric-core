@@ -11,11 +11,9 @@ export class FabricRouter ::
       public_routes: this._initPublicRoutes()
 
     let self = o_create(this)
-    if this._skip_bind_api ::
-      return self
-
-    o_assign @ this,
-      bindCoreRouterAPI @ self, hub, this._initRoutes()
+    if ! this._skip_bind_api ::
+      o_assign @ this,
+        bindCoreRouterAPI @ self, hub, this._initRoutes()
     return self
 
   _initRoutes() :: return new Map()

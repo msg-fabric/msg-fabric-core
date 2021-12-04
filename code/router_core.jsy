@@ -7,7 +7,6 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
 
   const router_ctx = @{}
     hub_router, timeouts: hub_router.timeouts,
-    get local() :: return hub.local
     loopback, send: loopback.send
 
   const pktctx0 = @{} __proto__: router_ctx,
@@ -33,6 +32,8 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
         : (pktctx.channel || {}).peerRoute
 
       if undefined === route ::
+        if pkt.bcast :: return // don't discover/warn on broadcast packet
+
         route = await resolveRoute(id_route, true, true)
 
         if undefined === route ::
