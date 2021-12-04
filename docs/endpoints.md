@@ -29,7 +29,8 @@ Extending `router_ctx`:
 - `send(...args)` -- alias for `loopback.send(...args)`
 - `loopback` -- alias for `hub.router.loopback`
 - `timeouts` -- returns shared timer. See [timeouts docs](./misc_timeouts.md)
-- `local` is an alias for `hub.local`
+- `hub_router` -- reference to `hub.router`
+- `tgt_router` -- reference to target router hosting the target endpoint
 
 
 

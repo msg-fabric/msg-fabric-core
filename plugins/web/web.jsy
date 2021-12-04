@@ -47,7 +47,7 @@ export function web_basic_api(hub, plugin_options) ::
         return this.connect @ mc.port2, tgt2
       else tgt2.postMessage @ {hello, ...opt}, [mc.port2]
 
-    mc_server(host, options) ::
+    mc_server(host, options={}) ::
       let id_pre = options.channel_id || 'mcsv-'
       host.addEventListener @ 'message', evt => ::
         let {data} = evt

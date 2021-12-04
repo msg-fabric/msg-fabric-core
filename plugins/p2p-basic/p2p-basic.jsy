@@ -1,9 +1,10 @@
-export function p2p_plugin({ p2p }={}) ::
+export function p2p_plugin() ::
   return hub => ::
-    hub._root_.p2p = p2p || bind_basic_p2p(hub)
+    hub._root_.p2p = bind_basic_p2p(hub)
 
 
 export function bind_basic_p2p(hub) ::
+  const ts_2020 = 1577836800000
   return @{}
     initForChannel(channel) ::
       return Object.create @ this, @{}
@@ -19,7 +20,7 @@ export function bind_basic_p2p(hub) ::
         router.timeouts @ ms_timeout, dp[1]
 
       await channel.send @ '', 'hello', @{}
-        version: 'basic', id_reply, ts: new Date
+        version: this.version, id_reply, ts: new Date
 
       let ans
       try :: ans = await dp[0]
@@ -32,6 +33,8 @@ export function bind_basic_p2p(hub) ::
         if ! public_routes.get(id_route) ::
           channel.addRoute @ id_route, false
 
+      for let fn of this._q ::
+        dp[0].then(fn)
       return ans
 
     peerRoute(pkt) ::
@@ -41,11 +44,24 @@ export function bind_basic_p2p(hub) ::
 
     _m$_hello(body) ::
       let {version, id_reply} = Object(body)
-      if 'basic' !== version :: return
+      if this.version !== version :: return
       if ! id_reply :: return
 
       return this.channel.send @ '', id_reply, @{}
-        version, ts: new Date
+        ... this.info,
+        version, ts: Date.now() - ts_2020,
         routes: Array.from @
           this.router.public_routes.keys()
+
+    version: 'basic'
+
+    info: {}
+    with_info(info) ::
+      this.info = {... this.info, ...info}
+      return this
+
+    _q: []
+    on(...fn_args) ::
+      this._q = this._q.concat(fn_args)
+      return this
 
