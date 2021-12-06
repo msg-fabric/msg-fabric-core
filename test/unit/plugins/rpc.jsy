@@ -43,12 +43,12 @@ export default function test_pi_rpc() ::
     log @ 'await results', await Promise.all @#
       r_one0, r_two, r_three0, r_three
 
-  it @ 'shape rpc plugin', @::
+  it @ 'shape rpc plugin', @::>
     expect(hub.rpc_from).to.be.a('function')
     expect(hub.rpc).to.be.an('object')
     expect(hub.rpc.from).to.be.a('function')
 
-  it @ 'shape rpc plugin client', @::
+  it @ 'shape rpc plugin client', @::>
     expect(hub.rpc).to.be.an('object')
     expect(hub.rpc.to).to.be.a('function')
 
@@ -60,14 +60,14 @@ export default function test_pi_rpc() ::
     expect(client.rpc_query).to.be.a('function')
     expect(client._rpc_v).to.be.a('function')
 
-  it @ 'shape rpc plugin endpoints', @::
+  it @ 'shape rpc plugin endpoints', @::>
     expect(hub.rpc).to.be.an('object')
     expect(hub.rpc.rpc_api).to.be.a('function')
     expect(hub.rpc.endpoint).to.be.a('function')
     expect(hub.rpc.ep_stateful).to.be.a('function')
     expect(hub.rpc.ep_idempotent).to.be.a('function')
 
-  it @ 'shape rpc plugin endpoint api', @::
+  it @ 'shape rpc plugin endpoint api', @::>
     let rapi = hub.rpc.rpc_api({})
     expect(rapi.rpc).to.be.a('function')
     expect(rapi.rpc_pkt).to.be.a('function')
