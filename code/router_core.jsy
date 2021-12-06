@@ -6,7 +6,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
   const loopback = ({ dispatch, __proto__: hub_router}).local_channel()
 
   const router_ctx = @{}
-    hub_router, timeouts: hub_router.timeouts,
+    hub, hub_router, timeouts: hub_router.timeouts,
     loopback, send: loopback.send
     to(id) :: return (...z) => this.send(id, ...z)
 
