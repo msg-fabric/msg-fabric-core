@@ -30,11 +30,11 @@
   - JSON: `plugins/json`
   - CBOR: `plugins/cbor`
 
-- Web platform
+- [Web](../plugins/web/README.md) platform
   - `plugins/ids/web`
   - `plugins/web` for using WebSocket, `MessageChannel`, `postMessage`, WebRTC, WebWorkers, ServiceWorkers, and iFrames
 
-- NodeJS platform
+- [NodeJS](../plugins/net/README.md) platform
   - `plugins/ids/node`
   - `plugins/net` for using TCP, TLS, and NodeJS Streams
 
@@ -46,11 +46,12 @@
 
   Pluggable discovery mechanisms for target endpoints and router connections.
 
-- Direct connections
+- [Direct](../plugins/direct/README.md) connections
 
   Useful for peering multiple MsgFabric hubs
 
-- rpc (alpha)
+- [RPC](../plugins/rpc/README.md) (alpha)
 
-  An RPC sketch plugin. Refactor required for newer `.addStream()` target support.
+  An RPC plugin sketch for stateful and idempotent/stateless RPC dispatch.
+
 

@@ -8,9 +8,10 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
   const router_ctx = @{}
     hub_router, timeouts: hub_router.timeouts,
     loopback, send: loopback.send
+    to(id) :: return (...z) => this.send(id, ...z)
 
   const pktctx0 = @{} __proto__: router_ctx,
-    get reply() :: return this.channel.send
+    // get send_direct() :: return this.channel.send
     redispatch: dispatch_one
 
 
@@ -19,7 +20,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
 
 
   function dispatch(pkt, channel) ::
-    return dispatch_one @ pkt, @{} channel, __proto__: pktctx0
+    return dispatch_one @ pkt, @{} channel, pkt, __proto__: pktctx0
 
   async function dispatch_one(pkt, pktctx) ::
     pkt = await pkt

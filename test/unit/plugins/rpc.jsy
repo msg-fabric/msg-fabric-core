@@ -2,21 +2,21 @@ import { Hub, expect, newLog, sleep } from '../_setup.jsy'
 
 export default function test_pi_rpc() ::
   var hub, log, simple_api
-  beforeEach @=>> ::
+  beforeEach @::>
     log = newLog()
     hub = Hub.create('$unit$')
 
     let v = 100
     simple_api = @{}
-      m$_one(...args) ::
+      m$_one(rpcx, ...args) ::
         const v0 = v++
         log @ 'm$_one', v0, args
         return v0
-      m$_two(...args) ::
+      m$_two(rpcx, ...args) ::
         const v0 = v++
         log @ 'm$_two', v0, args
         return v0
-      async m$_three(...args) ::
+      async m$_three(rpcx, ...args) ::
         const v0 = v++
         log @ 'm$_three', v0, args
         await sleep(10)
@@ -28,25 +28,72 @@ export default function test_pi_rpc() ::
     const client_api = hub.rpc.to(id_api)
 
     let c_order = 20
-    const r_one0 = client_api.m$_one.post @
+    const r_one0 = client_api.post.m$_one @
       'first as post', c_order++
 
-    const r_two = client_api.m$_two @
+    const r_two = client_api.query.m$_two @
       'a', ['b'], {c: 1942}, c_order++
 
-    const r_three0 = client_api.m$_three.post @
+    const r_three0 = client_api.post.m$_three @
       'third as post', c_order++
 
-    const r_three = client_api.m$_three @
+    const r_three = client_api.query.m$_three @
       'third as query', c_order++
 
     log @ 'await results', await Promise.all @#
       r_one0, r_two, r_three0, r_three
 
+  it @ 'shape rpc plugin', @::
+    expect(hub.rpc_from).to.be.a('function')
+    expect(hub.rpc).to.be.an('object')
+    expect(hub.rpc.from).to.be.a('function')
 
-  it @ 'Serial RPC', @=>> ::
-    const id_api = hub.rpc.api @ 'an-api', simple_api
-    await run_simple_rpc @ id_api
+  it @ 'shape rpc plugin client', @::
+    expect(hub.rpc).to.be.an('object')
+    expect(hub.rpc.to).to.be.a('function')
+
+    let client = hub.rpc.client
+    expect(client).to.be.an('object')
+    expect(client.to).to.be.a('function')
+    expect(client.with).to.be.a('function')
+    expect(client.rpc_post).to.be.a('function')
+    expect(client.rpc_query).to.be.a('function')
+    expect(client._rpc_v).to.be.a('function')
+
+  it @ 'shape rpc plugin endpoints', @::
+    expect(hub.rpc).to.be.an('object')
+    expect(hub.rpc.rpc_api).to.be.a('function')
+    expect(hub.rpc.endpoint).to.be.a('function')
+    expect(hub.rpc.ep_stateful).to.be.a('function')
+    expect(hub.rpc.ep_idempotent).to.be.a('function')
+
+  it @ 'shape rpc plugin endpoint api', @::
+    let rapi = hub.rpc.rpc_api({})
+    expect(rapi.rpc).to.be.a('function')
+    expect(rapi.rpc_pkt).to.be.a('function')
+    expect(rapi.rpc_stream).to.be.a('function')
+    expect(rapi.rpc_pkt).to.be.a('function')
+    expect(rapi.bind_rpc).to.be.a('function')
+    expect(rapi.lookup_name).to.be.a('function')
+
+  it @ 'rpc_post', @::>
+    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api
+    let c = hub.rpc.to(xrpc.id)
+    await c.rpc_post @ 'm$_one', 'a', ['b'], {c: 1942}, 21
+    expect(log.calls).to.be.deep.equal @#
+      @[] 'm$_one', 100, @[] 'a', ['b'], {c: 1942}, 21
+
+  it @ 'rpc_query', @::>
+    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api
+    let c = hub.rpc.to(xrpc.id)
+    let res = await c.rpc_query @ 'm$_one', 'a', ['b'], {c: 1942}, 21
+    expect(log.calls).to.be.deep.equal @#
+      @[] 'm$_one', 100, @[] 'a', ['b'], {c: 1942}, 21
+    expect(res).to.equal @ 100
+
+  it @ 'Stateful endpoint (serial) RPC', @::>
+    let xrpc = hub.rpc.ep_stateful @ 'an-api', simple_api
+    await run_simple_rpc @ xrpc.id
 
     expect(log.calls).to.be.deep.equal @#
       @[] 'm$_one', 100, @[] 'first as post', 20
@@ -57,10 +104,8 @@ export default function test_pi_rpc() ::
       @[] 'post m$_three', 103, 104, @[] 'third as query', 23
       @[] 'await results', @[] undefined, 101, undefined, [ 103, 104 ]
 
-
-  it @ 'Parallel RPC', @=>> ::
-    simple_api.rpc_options = @{} parallel: true
-    const id_api = hub.rpc.api @ 'an-api', simple_api
+  it @ 'Idempotent endpoint (parallel) RPC', @=>> ::
+    const id_api = hub.rpc.ep_idempotent @ 'an-api', simple_api
     await run_simple_rpc @ id_api
 
     expect(log.calls).to.be.deep.equal @#

@@ -15,7 +15,7 @@ export function bindXTargetAPI(router_ctx) ::
     __proto__: xtgt_api
 
     ms_timeout: 1000
-    on_reply: v => v[0].body
+    on_reponse: v => v[0].body
     absent: undefined
 
     async response(absent=this.absent) ::
@@ -24,7 +24,7 @@ export function bindXTargetAPI(router_ctx) ::
         this.ms_timeout, this.stream.next()
 
       return xt === res ? absent
-        : this.on_reply(res.value)
+        : this.on_reponse(res.value)
 
   return @{} xresp_api, xtgt_api
 

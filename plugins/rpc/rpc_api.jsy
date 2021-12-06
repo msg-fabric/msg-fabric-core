@@ -1,82 +1,67 @@
+export const rx_rpc = /[\$\s]/
+
+export class RPC ::
+  static create(rpc_api) ::
+    return new this(rpc_api)
+
+  constructor(rpc_api) ::
+    this.rpc_api = rpc_api
+
+  get rpc_stream() ::
+    // return a bound method, like python
+    return async xtgt => ::
+      for await let [pkt, pktctx] of xtgt.stream || xtgt ::
+        await this.rpc(pkt.body, pktctx)
+
+  get rpc_pkt() ::
+    // return a bound method, like python
+    return (pkt, pktctx) =>
+      this.rpc(pkt.body, pktctx)
+
+  async rpc(rpc_call, pktctx) ::
+    let fn = this.bind_rpc(rpc_call, pktctx)
+    if fn ::
+      let r = await fn()
+      if r !== pktctx ::
+        let reply = pktctx.reply
+        if reply ::
+          await reply(r)
+
+  bind_rpc(rpc_call, pktctx) ::
+    if Array.isArray(rpc_call) ::
+      // rpc_call: @[] '!', id_reply, method, ... args
+      let [is_rpc,, method] = rpc_call
+      if '!' === is_rpc || 'string' === typeof method ::
+        let rpc_fn = this.lookup_name(method)
+        return rpc_fn
+          ? this._bind_rpc(rpc_fn, rpc_call, pktctx)
+          : this._bind_dnu(method, pktctx)
+    // otherwise, invalid rpc_call
+
+  lookup_name(method) ::
+    return rx_rpc.test(method) && this.rpc_api[method]
+
+  _bind_rpc(rpc_fn, rpc_call, pktctx) ::
+    // rpc_call: @[] '!', id_reply, method, ... args
+    let [, id_reply,, ... args] = rpc_call
+    if id_reply :: // id_reply
+      this._bind_reply(id_reply, pktctx)
+    return rpc_fn.bind(this.rpc_api, pktctx, ... args)
+
+  _bind_reply(id_reply, pktctx) ::
+    return Object.assign @ pktctx, @{}
+      reply: pktctx.to(id_reply)
+      done() ::
+        this.reply = null
+        return this
 
 
-export function bind_rpc_api_dispatch(send, base_rpc_options) ::
-  const _f_ident = v => v
-  const _with_pkt = (params, {pkt}) => ( params.unshift(pkt), params )
+  _bind_dnu(method, pktctx) ::
+    let {rpc_api}=this, fn = rpc_api.__dnu__
+    return fn ? fn.bind(rpc_api, method, pktctx)
+      : this.rpc_dnu.bind(this, rpc_api, method, pktctx)
 
-  const _as_api_fn = (api, name, args) =>
-    api[name] && @=> api[name](...args)
-
-  const _as_rpc_reply = (rpc_fn, id_reply) =>
-    @::>
-      // TODO: What about exceptions?
-      let body = await rpc_fn()
-      await send({0: id_reply[0], 1: id_reply[1], body})
-
-  base_rpc_options = @{}
-    prefix: 'm$', dnu: '__dnu__'
-    extend_api: _f_ident
-    params: false
-    parallel: false
-
-    ... base_rpc_options
-
-  return api_binder
-
-  function api_binder(api) ::
-    let rpc_options = @{} __proto__: base_rpc_options, ... api.rpc_options
-    let { prefix, dnu, extend_api, params, parallel } = rpc_options
-    params = _as_bind_params(params)
-
-    return @{} rpc_binder,
-      as_dispatch: (parallel ? _disp_parallel : _disp_serial)(rpc_binder)
-
-    function rpc_binder(call, pkt) ::
-      // call: @[] '!', id_reply, method, ... args
-      let [is_rpc, id_reply, method, ... args] = call
-
-      if '!' !== is_rpc || 'string' !== typeof method ::
-        return null // invalid rpc call
-
-      let valid = method.startsWith(prefix)
-      let call_ctx = @{} pkt, args, call, method, valid, send
-      let _api = extend_api(api, call_ctx)
-      
-      let rpc_fn = @ valid
-        && _as_api_fn(_api, method, params(args, call_ctx))
-        || _as_api_fn(_api, dnu, [method, call_ctx])
-
-      // TODO: What about exceptions?
-      return id_reply
-        ? _as_rpc_reply(rpc_fn, id_reply)
-        : rpc_fn
-
-
-  function _as_bind_params(key) ::
-    switch typeof key ::
-      case 'function':
-        return key
-
-      case 'boolean':
-        return key ? _with_pkt : _f_ident
-
-      case 'string':
-        return (params, ns) => @
-          params.unshift(ns[key])
-          params
-
-      default: throw TypeError
-
-  function _disp_parallel(rpc_binder) ::
-    return @\ pkt ::
-      let api_fn = rpc_binder(pkt.body, pkt)
-      if api_fn ::
-        return api_fn()
-
-  function _disp_serial(rpc_binder) ::
-    let p = Promise.resolve()
-    return @\ pkt ::
-      let api_fn = rpc_binder(pkt.body, pkt)
-      if api_fn ::
-        return p = p.then(api_fn, api_fn)
+  rpc_dnu(rpc_api, method, pktctx) ::
+    // DNU is "does not understand" convention from Smalltalk.
+    console.warn @ `RPC DNU`, @{} method, rpc_api
 

@@ -21,7 +21,7 @@ Use `addTarget()` to implement stateless or async independently parallel message
 `pktctx` is a prototypal object extension of `hub.router.router_ctx`:
 
 - `channel` is the source channel `pkt` arrived from
-- `reply(...args)` is a fast-path `channel.send(...args)` to bypass generic routing overhead.
+- `channel.send(...args)` to bypass generic routing overhead.
 - `redispatch(pkt, pktctx)` is useful when routes are discovered while handling packet
 
 Extending `router_ctx`:

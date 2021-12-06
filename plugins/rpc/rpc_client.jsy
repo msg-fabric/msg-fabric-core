@@ -1,46 +1,52 @@
+import {rx_rpc} from './rpc_api.jsy'
 
-export function bind_rpc_client(tgt_router) ::
-  const rpc_api_proxy = @{}
-    get(obj, prop, pxy) ::
-      if 'string' === typeof prop ::
-        if prop.includes('$') ::
-          let method_obj = Object.assign @ () => prop, obj
-          return new Proxy @ method_obj, rpc_method_proxy
+export const rpc_client = /* #__PURE__ */
+  Object.create @
+    @{}
+      with(kw) ::
+        return @{} __proto__: this, ...kw
 
-        let rpc_fn = this['rpc_'+prop]
-        if 'function' === typeof rpc_fn ::
-          return rpc_fn.bind(pxy, obj)
+      to(id, meta=this.meta, kw) ::
+        return this.with @: id, meta, ...kw
 
-      return obj
+      rpc_post(method, ...args) ::
+        return this._rpc_v(method, null, args)
 
-    rpc_timeout(obj, ms) ::
-      obj.ms_timeout = ms
-      return this
+      rpc_query(method, ...args) ::
+        let r = this.tgt_router.addReply(this.ms_timeout)
+        let p = r.response()
+        this._rpc_v(method, r.id, args)
+        return p
 
+      _rpc_v(method, id_reply, args_v) ::
+        let {id, meta} = this
+        if ! id :: throw new Error('Invalid RPC destination')
 
-  const rpc_method_proxy = @{}
-    __proto__: rpc_api_proxy
+        let body = @[] '!', id_reply, method, ...args_v
+        return this.tgt_router.send @ id, meta, body
 
-    apply(method_obj, a_this, args) ::
-      return this.rpc_query @ method_obj, ...args
-
-    async rpc_query(method_obj, ...args) ::
-      let { id, meta, ms_timeout } = method_obj
-      let r = tgt_router.addReply(ms_timeout)
-      let p = r.response()
-      await tgt_router.send @: 0: id[0], 1: id[1], meta,
-        body: @[] '!', r.id, method_obj(), ...args
-      return await p
-
-    async rpc_post(method_obj, ...args) ::
-      let { id, meta } = method_obj
-      await tgt_router.send @: 0: id[0], 1: id[1], meta,
-        body: @[] '!', null, method_obj(), ...args
+    @{}
+      post: _wm_rpc_pxy('rpc_post')
+      query: _wm_rpc_pxy('rpc_query')
 
 
-  return (id, meta) => ::
-    if ! Array.isArray(id) || ! id[0] ::
-      throw new TypeError
+function _wm_rpc_pxy(name) ::
+  // Object attribute for weak-ref caching of proxies and methods
+  let wm = new WeakMap()
+  return @{}
+    get() :: // object attribute getter
+      let r = wm.get(this)
+      if undefined === r ::
+        // weakly cache proxy
+        wm.set(this, r=_rpc_pxy({}, this, this[name]))
+      return r
 
-    return new Proxy @ {id, meta}, rpc_api_proxy
+  function _rpc_pxy(obj, host, wrap_fn) ::
+    return new Proxy @ obj, @{}
+      get(obj, method) :: // proxy attribute getter
+        let r = obj[method]
+        if undefined === r && rx_rpc.test(method) ::
+          // cache bound method
+          obj[method] = r = wrap_fn.bind(host, method)
+        return r
 

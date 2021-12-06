@@ -1,27 +1,31 @@
-import { bind_rpc_client } from './rpc_client.jsy'
-import { bind_rpc_api_dispatch } from './rpc_api.jsy'
+import { rpc_client } from './rpc_client.jsy'
+import { RPC } from './rpc_api.jsy'
 
 export function rpc_plugin() ::
   return hub => ::
-    const _rpc_proto_ = @{}
-      from: rpc_from
-      api_binder: bind_rpc_api_dispatch(hub.send)
-      api_target(api) :: return this.api_binder(api).as_dispatch
-
     hub.rpc_from = rpc_from
     return hub.rpc = rpc_from(hub.local)
 
     function rpc_from(tgt_router) ::
-      let client = bind_rpc_client(tgt_router)
+      let client = rpc_client.with @: tgt_router
       return @{}
-        __proto__: _rpc_proto_
-        to: client, client,
+        from: rpc_from
 
-        api(id_target, api) ::
-          if api === undefined ::
-            api = id_target
-            id_target = null
+        client, to: (...args) => client.to(...args)
 
+        RPC, rpc_api(rpc_api) ::
+          return this.RPC.create(rpc_api)
+
+        endpoint(...args) ::
+          return this.ep_stateful(...args)
+
+        ep_stateful(...args) ::
+          let xrpc = this.rpc_api(args.pop())
+          return tgt_router.addStream @
+            args.shift(), xrpc.rpc_stream
+
+        ep_idempotent(...args) ::
+          let xrpc = this.rpc_api(args.pop())
           return tgt_router.addTarget @
-            id_target, this.api_target(api)
+            args.shift(), xrpc.rpc_pkt
 
