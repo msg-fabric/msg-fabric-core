@@ -1,4 +1,5 @@
 import { as_func } from './builtins.jsy'
+import { ao_track_when } from './timeouts.jsy'
 import { bindXTargetAPI } from './xtgt_api.jsy'
 
 export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
@@ -84,7 +85,10 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
   let _use_override = {override: true}
   let _use_existing = {override: false}
 
+  let db_when = ao_track_when()
   return @{}
+    whenRoute: db_when.get
+
     addRoute(id_route, route, opt) ::
       as_func(route)
 
@@ -97,6 +101,7 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
       routes_map.set @ id_route, route
       let cancel = @=> this.removeRoute @ id_route, route
 
+      db_when.define @ id_route, id_route
       if ! opt.ms_ttl ::
         return @{} route, cancel
 
@@ -114,6 +119,7 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
 
       if null == route || route === routes_map.get(id_route) ::
         // remove only if route is currently at id_route
+        db_when.delete @ id_route
         return routes_map.delete @ id_route
       return false
 

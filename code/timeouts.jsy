@@ -1,7 +1,7 @@
 import { o_assign, o_defprop, is_func, as_func, _unref, _ref } from './builtins.jsy'
 
-import { ao_defer_v, ao_fence_v, ao_when, ao_fence_when, ao_push_stream } from 'roap'
-export { ao_defer_v, ao_fence_v, ao_when, ao_fence_when, ao_push_stream } from 'roap'
+import { ao_defer_v, ao_fence_v, ao_when, ao_track_when, ao_fence_when, ao_push_stream } from 'roap'
+export { ao_defer_v, ao_fence_v, ao_when, ao_track_when, ao_fence_when, ao_push_stream } from 'roap'
 
 
 const timeout_ttl = @{}
@@ -36,7 +36,7 @@ export function bindTimeouts(ms_interval, on_fn_error) ::
     add, f_tick, f_empty
 
     ao_defer_v, ao_fence_v,
-    ao_when, ao_fence_when,
+    ao_when, ao_track_when, ao_fence_when,
     ao_push_stream,
 
     race(ms_min_timeout, ...promises) ::
