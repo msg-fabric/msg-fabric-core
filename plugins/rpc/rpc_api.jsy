@@ -7,6 +7,9 @@ export class RPC ::
   constructor(rpc_api) ::
     this.rpc_api = rpc_api
 
+  with(rpc_api) ::
+    return @{} __proto__: this, rpc_api
+
   get rpc_stream() ::
     // return a bound method, like python
     return async xtgt => ::

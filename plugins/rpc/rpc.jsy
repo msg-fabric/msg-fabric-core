@@ -1,31 +1,49 @@
 import { rpc_client } from './rpc_client.jsy'
 import { RPC } from './rpc_api.jsy'
 
-export function rpc_plugin() ::
+export function rpc_plugin(rpc_attr_name='rpc') ::
+  let wm = new WeakMap()
   return hub => ::
     hub.rpc_from = rpc_from
-    return hub.rpc = rpc_from(hub.local)
 
-    function rpc_from(tgt_router) ::
-      let client = rpc_client.with @: tgt_router
-      return @{}
-        from: rpc_from
+    Object.defineProperty @
+      hub.router.router_ctx, rpc_attr_name,
+      @{} get(...args) ::
+        return rpc_from(this.tgt_router)
 
-        client, to: (...args) => client.to(...args)
+    return hub[rpc_attr_name] = rpc_from(hub.local)
 
-        RPC, rpc_api(rpc_api) ::
-          return this.RPC.create(rpc_api)
+  function rpc_from(tgt_router) ::
+    let rpc = wm.get(tgt_router)
+    if undefined === rpc && tgt_router ::
+      wm.set @ tgt_router,
+        rpc = _rpc_route(tgt_router)
+    return rpc
 
-        endpoint(...args) ::
-          return this.ep_stateful(...args)
+  function _rpc_route(tgt_router) ::
+    let client = rpc_client.with @: tgt_router
+    let rpc = @{}
+      from: rpc_from
 
-        ep_stateful(...args) ::
-          let xrpc = this.rpc_api(args.pop())
-          return tgt_router.addStream @
-            args.shift(), xrpc.rpc_stream
+      client, to: (...args) => client.to(...args)
 
-        ep_idempotent(...args) ::
-          let xrpc = this.rpc_api(args.pop())
-          return tgt_router.addTarget @
-            args.shift(), xrpc.rpc_pkt
+      RPC, api(rpc_api) ::
+        return this.RPC.create(rpc_api)
 
+      stream(xtgt, rpc_api) ::
+        return this.api(rpc_api)
+          .rpc_stream(xtgt)
+
+      ep_stateful(...args) ::
+        let xrpc = this.api(args.pop())
+        return tgt_router.addStream @
+          args[0], xrpc.rpc_stream, args[1]
+
+      ep_idempotent(...args) ::
+        let xrpc = this.api(args.pop())
+        return tgt_router.addTarget @
+          args[0], xrpc.rpc_pkt, args[1]
+
+    // aliases
+    rpc.endpoint = rpc.ep_stateful
+    return rpc

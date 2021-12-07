@@ -8,11 +8,15 @@
   - `client` is a prototypal instace of rpc client with the target router
 
 - `RPC` is the RPC API dispatcher strategy class
-- `rpc_api` creates an instance of the RPC API dispatcher
+- `api` creates an instance of the RPC API dispatcher
+- `stream(xtgt, rpc_api)`
 
-- `endpoint(id_target?, rpc_api)` creates a streaming
+- `endpoint(id_target?, rpc_api)`
+- `ep_stateful(id_target?, rpc_api)`
+- `ep_idempotent(id_target?, rpc_api)`
 
 - `from()` and `hub.rpc_from()` -- binds a new RPC context using the specified target router.
+
 
 ### `rpc_client`
 
