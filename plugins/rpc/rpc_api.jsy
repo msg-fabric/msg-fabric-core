@@ -7,8 +7,15 @@ export class RPC ::
   constructor(rpc_api) ::
     this.rpc_api = rpc_api
 
-  with(rpc_api) ::
-    return @{} __proto__: this, rpc_api
+    // overlay using rpc_api
+    for let k of ['lookup', 'log', 'error', 'dnu'] ::
+      k = 'rpc_'+k
+      let fn = rpc_api[k]
+      this[k] = fn ? fn.bind(rpc_api)
+        : this[k].bind(this)
+
+  with(rpc_api, kw) ::
+    return @{} __proto__: this, rpc_api, ...kw
 
   get rpc_stream() ::
     // return a bound method, like python
@@ -22,49 +29,69 @@ export class RPC ::
       this.rpc(pkt.body, pktctx)
 
   async rpc(rpc_call, pktctx) ::
-    let fn = this.bind_rpc(rpc_call, pktctx)
-    if fn ::
-      let r = await fn()
-      if r !== pktctx ::
-        let reply = pktctx.reply
-        if reply ::
-          await reply(r)
+    rpc_call = this.rpc_record.from(rpc_call)
+
+    let reply, rpc_fn = this.bind_rpc(rpc_call, pktctx)
+
+    if false === rpc_fn ::
+      this.rpc_log(rpc_call, 'dnu')
+      this.rpc_dnu(rpc_call)
+      if reply = rpc_call.id_reply  ::
+        pktctx.send @ reply,
+          @{} err: 'DNU', dnu: true
+      return false
+
+    if rpc_fn ::
+      this.rpc_log(rpc_call, 'call')
+      try ::
+        let r = await rpc_fn()
+        this.rpc_log(rpc_call, 'done', r)
+        if reply = pktctx.reply ::
+          reply @: ok: r
+      catch err ::
+        this.rpc_log(rpc_call, 'error', err)
+        if reply = pktctx.reply ::
+          reply @: err: `${err}`, ... err.rpc
+        this.rpc_error(err, rpc_call)
+      return true
 
   bind_rpc(rpc_call, pktctx) ::
-    if Array.isArray(rpc_call) ::
-      // rpc_call: @[] '!', id_reply, method, ... args
-      let [is_rpc,, method] = rpc_call
-      if '!' === is_rpc || 'string' === typeof method ::
-        let rpc_fn = this.lookup_name(method)
-        return rpc_fn
-          ? this._bind_rpc(rpc_fn, rpc_call, pktctx)
-          : this._bind_dnu(method, pktctx)
+    if rpc_call.is_valid_rpc() ::
+      let rpc_fn = this.rpc_lookup(rpc_call)
+      return rpc_fn
+        ? this._bind_rpc(rpc_fn, rpc_call, pktctx)
+        : false
     // otherwise, invalid rpc_call
-
-  lookup_name(method) ::
-    return rx_rpc.test(method) && this.rpc_api[method]
 
   _bind_rpc(rpc_fn, rpc_call, pktctx) ::
     // rpc_call: @[] '!', id_reply, method, ... args
-    let [, id_reply,, ... args] = rpc_call
+    let {id_reply, args} = rpc_call
     if id_reply :: // id_reply
-      this._bind_reply(id_reply, pktctx)
+      pktctx.with_reply(id_reply)
     return rpc_fn.bind(this.rpc_api, pktctx, ... args)
 
-  _bind_reply(id_reply, pktctx) ::
-    return Object.assign @ pktctx, @{}
-      reply: pktctx.to(id_reply)
-      done() ::
-        this.reply = null
-        return this
 
+  rpc_lookup(rpc_call) ::
+    return this.rpc_api[rpc_call.method]
 
-  _bind_dnu(method, pktctx) ::
-    let {rpc_api}=this, fn = rpc_api.__dnu__
-    return fn ? fn.bind(rpc_api, method, pktctx)
-      : this.rpc_dnu.bind(this, rpc_api, method, pktctx)
+  rpc_log(rpc_call, step, ...info) ::
 
-  rpc_dnu(rpc_api, method, pktctx) ::
+  rpc_error(err, rpc_call) ::
+    console.warn @ `RPC ERROR [%o]`, rpc_call.method, err
+
+  rpc_dnu(rpc_call) ::
     // DNU is "does not understand" convention from Smalltalk.
-    console.warn @ `RPC DNU`, @{} method, rpc_api
+    console.warn @ `RPC DNU [%o]`, rpc_call.method
+
+
+class rpc_record extends Array ::
+  // rpc_call: @[] '!', id_reply, method, ... args
+
+  is_valid_rpc() ::
+    return '!' === this[0] && rx_rpc.test(this[2])
+  get id_reply() :: return this[1]
+  get method() :: return this[2]
+  get args() :: return this.slice(3)
+
+RPC.prototype.rpc_record = rpc_record
 

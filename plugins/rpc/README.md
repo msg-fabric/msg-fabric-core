@@ -1,5 +1,13 @@
 # `rpc` plugin for msg-fabric-core 
 
+```javascript
+let ep_my_api = hub.rpc.endpoing({
+  // rpc methods
+  m$_alpha(rpcx, ...args) { /* ... */ },
+  m$_beta(rpcx, ...args) { /* ... */ },
+  'another rpc method'(rpcx, ...args) { /* ... */ },
+})
+```
 
 ### `hub.rpc` and `hub.rpc_from(hub.localRoute(...))`
 
@@ -17,6 +25,32 @@
 
 - `from()` and `hub.rpc_from()` -- binds a new RPC context using the specified target router.
 
+
+### `rpc_api`
+
+```javascript
+hub.rpc.api({
+  // rpc methods
+
+  m$_alpha(rpcx, ...args) { /* ... */ },
+  m$_beta(rpcx, ...args) { /* ... */ },
+  'another rpc method'(rpcx, ...args) { /* ... */ },
+
+  // optional override of rpc flow:
+
+  rpc_lookup(rpc_call) {
+    return this[rpc_call.method] },
+
+  rpc_log(rpc_call, step, ...info) {
+    console.log('rpc log [%o]', rpc_call.method, step, info) },
+
+  rpc_dnu(rpc_call)`
+    console.warn('rpc dnu [%o]', rpc_call.method) },
+
+  rpc_error(err, rpc_call) {
+    console.warn('rpc error [%o]', rpc_call.method, err) },
+})
+```
 
 ### `rpc_client`
 
@@ -37,17 +71,14 @@
 - `async rpc_stream(xtgt)`
 - `async rpc_pkt(pkt, pktctx)`
 
-- `rpc_dnu(rpc_api, method, pktctx)`
-  Override to customize logging for fallback `__dnu__()` handling
+- Overridable on `rpc_api` as well as RPC
+  - `rpc_lookup(rpc_call)` resolve method on `rpc_api` or undefined.
+  - `rpc_log(rpc_call, step, ...info)`
+  - `rpc_error(err, rpc_call)`
+  - `rpc_dnu(rpc_call)`
 
 - `bind_rpc(rpc_call, pktctx)`
-  Given `rpc_call` of shape `['!', id_reply, method, ... args]`, resolve method on `rpc_api` or as a bound DNU method.
+  Given `rpc_call` of shape `['!', id_reply, method, ... args]`, resolve using `rpc_lookup`.
   Returns undefined if `rpc_call` or `method` name are invalid.
 
-  Parts of composed implementation of `bind_rpc`
-
-  - `lookup_name(method, pktctx)` resolve method on `rpc_api` or undefined.
-  - `_bind_rpc()` 
-  - `_bind_reply()`
-  - `_bind_dnu()`
 

@@ -13,6 +13,14 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
   const pktctx0 = @{} __proto__: router_ctx,
     // get send_direct() :: return this.channel.send
     redispatch: dispatch_one
+    with_reply(id_reply) ::
+      if id_reply ::
+        this.reply = id_reply ? this.to(id_reply) : null
+        this.done = this.with_reply
+      else ::
+        delete this.reply
+        delete this.done
+      return this
 
 
   return @{} dispatch, resolveRoute, loopback, router_ctx,

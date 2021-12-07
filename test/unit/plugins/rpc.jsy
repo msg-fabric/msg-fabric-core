@@ -16,12 +16,38 @@ export default function test_pi_rpc() ::
         const v0 = v++
         log @ 'm$_two', v0, args
         return v0
+      m$_throw_fit(rpcx, ...args) ::
+        const v0 = v++
+        log @ 'm$_throw_fit', v0, args
+        throw new Error('a fit')
       async m$_three(rpcx, ...args) ::
         const v0 = v++
         log @ 'm$_three', v0, args
         await sleep(10)
         log @ 'post m$_three', v0, v, args
         return [v0, v]
+
+      rpc_dnu(rpc_call) ::
+        log @ 'rpc_dnu', rpc_call.method
+      rpc_error(err, rpc_call) ::
+        log @ 'rpc_err', rpc_call.method, `${err}`
+
+      with_rpc_flow() ::
+        return this
+          .with_rpc_lookup()
+          .with_rpc_log()
+
+      with_rpc_lookup() ::
+        return @{} __proto__: this, 
+          rpc_lookup(rpc_call) ::
+            let {method} = rpc_call, fn = this[method]
+            log @ 'rpc_lookup', method, !! fn
+            return fn
+
+      with_rpc_log() ::
+        return @{} __proto__: this, 
+          rpc_log(rpc_call, step, ...z) ::
+            log @ 'rpc_log', rpc_call.method, step, ...z
 
     
   async function run_simple_rpc(id_api) ::
@@ -75,45 +101,73 @@ export default function test_pi_rpc() ::
     expect(rapi.rpc_stream).to.be.a('function')
     expect(rapi.rpc_pkt).to.be.a('function')
     expect(rapi.bind_rpc).to.be.a('function')
-    expect(rapi.lookup_name).to.be.a('function')
+    expect(rapi.rpc_lookup).to.be.a('function')
+    expect(rapi.rpc_log).to.be.a('function')
+    expect(rapi.rpc_dnu).to.be.a('function')
+    expect(rapi.rpc_error).to.be.a('function')
 
   it @ 'rpc_post', @::>
-    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api
+    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api.with_rpc_flow()
     let c = hub.rpc.to(xrpc.id)
     await c.rpc_post @ 'm$_one', 'a', ['b'], {c: 1942}, 21
-    expect(log.calls).to.be.deep.equal @#
+    expect(log.calls.slice(0,3)).to.deep.equal @#
+      @[] 'rpc_lookup', 'm$_one', true
+      @[] 'rpc_log', 'm$_one', 'call'
       @[] 'm$_one', 100, @[] 'a', ['b'], {c: 1942}, 21
 
   it @ 'rpc_query', @::>
-    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api
+    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api.with_rpc_flow()
     let c = hub.rpc.to(xrpc.id)
     let res = await c.rpc_query @ 'm$_one', 'a', ['b'], {c: 1942}, 21
-    expect(log.calls).to.be.deep.equal @#
+    expect(log.calls).to.deep.equal @#
+      @[] 'rpc_lookup', 'm$_one', true
+      @[] 'rpc_log', 'm$_one', 'call'
       @[] 'm$_one', 100, @[] 'a', ['b'], {c: 1942}, 21
-    expect(res).to.equal @ 100
+      @[] 'rpc_log', 'm$_one', 'done', 100
+    expect(res).to.deep.equal @ {ok: 100}
+
+  it @ 'rpc_query with non-existant method', @::>
+    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api.with_rpc_lookup()
+    let c = hub.rpc.to(xrpc.id)
+    let res = await c.rpc_query @ 'm$ not an existing method'
+    expect(res).to.deep.equal @ {dnu: true, err: 'DNU'}
+    expect(log.calls).to.deep.equal @#
+      @[] 'rpc_lookup', 'm$ not an existing method', false
+      @[] 'rpc_dnu', 'm$ not an existing method'
+
+  it @ 'rpc_query with exception', @::>
+    let xrpc = hub.rpc.endpoint @ 'an-api', simple_api.with_rpc_lookup()
+    let c = hub.rpc.to(xrpc.id)
+    let res = await c.rpc_query @ 'm$_throw_fit'
+    expect(res).to.deep.equal @ {err: 'Error: a fit'}
+    expect(log.calls).to.deep.equal @#
+      @[] 'rpc_lookup', 'm$_throw_fit', true
+      @[] 'm$_throw_fit', 100, []
+      @[] 'rpc_err', 'm$_throw_fit', 'Error: a fit'
+
 
   it @ 'Stateful endpoint (serial) RPC', @::>
     let xrpc = hub.rpc.ep_stateful @ 'an-api', simple_api
     await run_simple_rpc @ xrpc.id
 
-    expect(log.calls).to.be.deep.equal @#
+    expect(log.calls).to.deep.equal @#
       @[] 'm$_one', 100, @[] 'first as post', 20
       @[] 'm$_two', 101, @[] 'a', [ 'b' ], { c: 1942 }, 21
       @[] 'm$_three', 102, @[] 'third as post', 22
       @[] 'post m$_three', 102, 103, @[] 'third as post', 22
       @[] 'm$_three', 103, @[] 'third as query', 23
       @[] 'post m$_three', 103, 104, @[] 'third as query', 23
-      @[] 'await results', @[] undefined, 101, undefined, [ 103, 104 ]
+      @[] 'await results', @[] undefined, {ok: 101}, undefined, {ok: [ 103, 104 ]}
 
   it @ 'Idempotent endpoint (parallel) RPC', @=>> ::
     const id_api = hub.rpc.ep_idempotent @ 'an-api', simple_api
     await run_simple_rpc @ id_api
 
-    expect(log.calls).to.be.deep.equal @#
+    expect(log.calls).to.deep.equal @#
       @[] 'm$_one', 100, @[] 'first as post', 20
       @[] 'm$_two', 101, @[] 'a', [ 'b' ], { c: 1942 }, 21
       @[] 'm$_three', 102, @[] 'third as post', 22
       @[] 'm$_three', 103, @[] 'third as query', 23
       @[] 'post m$_three', 102, 104, @[] 'third as post', 22
       @[] 'post m$_three', 103, 104, @[] 'third as query', 23
-      @[] 'await results', @[] undefined, 101, undefined, [ 103, 104 ]
+      @[] 'await results', @[] undefined, {ok: 101}, undefined, {ok: [ 103, 104 ]}
