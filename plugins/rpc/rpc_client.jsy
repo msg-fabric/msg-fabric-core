@@ -5,18 +5,29 @@ export const rpc_client = /* #__PURE__ */
     @{}
       with(kw) ::
         return @{} __proto__: this, ...kw
-
       to(id, meta=this.meta, kw) ::
-        return this.with @: id, meta, ...kw
+        return this.with @: id, meta, ... kw
+
+      ms_timeout: 1000
+      absent: {timeout: true, err: 'timeout'}
+
+      with_opt(query_opt) ::
+        if 'number' === typeof opt ::
+          query_opt = {ms_timeout: query_opt}
+        return this.with @:
+          query_opt: @{}
+            __proto__: this.query_opt,
+            ... opt
 
       rpc_post(method, ...args) ::
         return this._rpc_v(method, null, args)
 
       rpc_query(method, ...args) ::
-        let r = this.tgt_router.addReply(this.ms_timeout)
-        let p = r.response()
-        this._rpc_v(method, r.id, args)
-        return p
+        let xtgt = this.tgt_router.addOnce @
+          this.ms_timeout, this.absent
+
+        this._rpc_v(method, xtgt.id, args)
+        return xtgt.promise
 
       _rpc_v(method, id_reply, args_v) ::
         let {id, meta} = this

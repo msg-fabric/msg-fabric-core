@@ -39,6 +39,10 @@ export function bindTimeouts(ms_interval, on_fn_error) ::
     ao_when, ao_track_when, ao_fence_when,
     ao_push_stream,
 
+    async absent(absent, ...args) ::
+      let res = await this.race(...args)
+      return this !== res ? res : absent
+
     race(ms_min_timeout, ...promises) ::
       let dp = ao_defer_v()
       promises.push(dp[0])

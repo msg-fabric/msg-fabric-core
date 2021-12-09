@@ -1,6 +1,7 @@
 import { as_func, p_then } from './builtins.jsy'
-import { ao_push_stream } from './timeouts.jsy'
+import { ao_defer_v, ao_push_stream } from './timeouts.jsy'
 
+const xpkt_body = pkt => pkt.body
 
 export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router) ::
   // as closures over private variables (targets_map)
@@ -47,6 +48,13 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
           ? id_target
           : id_target[1]
 
+    addDefer_v
+    addOnce(ms, absent, target=xpkt_body) ::
+      let xtgt = addDefer_v(target)
+      xtgt.promise = router.timeouts.absent @
+        absent, ms, xtgt.promise
+      return xtgt
+
     xstream
     xtgt: id_target => xstream(id_target, router.xtgt_api)
     xresp: id_target => xstream(id_target, router.xresp_api)
@@ -61,9 +69,26 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
       targets_map.set @ id[1], as_func(target)
     return id
 
+  function addDefer_v(target, inc_pktctx, dp=ao_defer_v()) ::
+    let id = addTarget @ null,
+      ! inc_pktctx ? dp[1]
+        : (...zpkt) => dp[1](...zpkt)
+
+    let p = dp[0].finally @=>
+      targets_map.delete(id[0])
+
+    if target ::
+      p = p.then(target)
+
+    return @{}
+      id, 0: id[0], 1: id[1],
+      promise: p
+
   function xstream(id_target, xapi) ::
     let {stream, when_done, abort, push} = ao_push_stream(true)
     let id = addTarget(id_target, push)
     tgt_router.removeAfter(id, when_done)
-    return @{} __proto__: xapi, id, stream, abort, when_done, tgt_router
+    return @{} __proto__: xapi,
+      id, 0: id[0], 1: id[1],
+      stream, abort, when_done, tgt_router
 

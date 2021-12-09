@@ -46,4 +46,5 @@ export function rpc_plugin(rpc_attr_name='rpc') ::
 
     // aliases
     rpc.endpoint = rpc.ep_stateful
-    return rpc
+
+    return tgt_router[rpc_attr_name] = rpc
