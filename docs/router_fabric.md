@@ -9,7 +9,6 @@ hub.router
 - `timeouts` -- returns shared timer. See [timeouts docs](./misc_timeouts.md)
 - `loopback` -- MessagePort based local channel. See [code/channel.jsy](../code/channel.jsy)
 - `router_ctx` -- Shared context for target packets. Extensible by plugins.
-- `xresp_api` and `xtgt_api` -- extend `router_ctx` with APIs for implementing endpoint targets
 
 
 ### Methods

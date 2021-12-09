@@ -72,8 +72,6 @@ export class FabricRouter ::
 
   loopback
   router_ctx
-  xresp_api
-  xtgt_api
   */
 
 

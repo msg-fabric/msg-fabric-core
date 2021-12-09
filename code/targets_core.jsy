@@ -1,8 +1,6 @@
 import { as_func, p_then } from './builtins.jsy'
 import { ao_defer_v, ao_push_stream } from './timeouts.jsy'
 
-const xpkt_body = pkt => pkt.body
-
 export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router) ::
   // as closures over private variables (targets_map)
   return @{} ready: _add_target_route(id_route)
@@ -49,21 +47,13 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
           : id_target[1]
 
     addDefer_v
-    addOnce(ms, absent, target=xpkt_body) ::
-      let xtgt = addDefer_v(target)
-      xtgt.promise = router.timeouts.absent @
-        absent, ms, xtgt.promise
-      return xtgt
-
     xstream
-    xtgt: id_target => xstream(id_target, router.xtgt_api)
-    xresp: id_target => xstream(id_target, router.xresp_api)
 
     ... bindCoreDispatchTarget @
           tgt_router, targets_map,
           id_route, router
 
-  function addTarget(id_target, target) ::
+  function addTarget(id_target, target, with_remove) ::
     let id = @[] id_route, id_target || tgt_router.newTargetId()
     if null != target ::
       targets_map.set @ id[1], as_func(target)
@@ -74,9 +64,8 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
       ! inc_pktctx ? dp[1]
         : (...zpkt) => dp[1](...zpkt)
 
-    let p = dp[0].finally @=>
-      targets_map.delete(id[0])
-
+    let p = dp[0]
+    tgt_router.removeAfter(id, p)
     if target ::
       p = p.then(target)
 

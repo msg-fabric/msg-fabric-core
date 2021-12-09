@@ -1,6 +1,8 @@
 import { o_assign, o_create } from './builtins.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'
 
+const xpkt_body = pkt => pkt.body
+
 export class TargetRouter ::
 
   constructor(id_route, router, hub) ::
@@ -35,24 +37,36 @@ export class TargetRouter ::
   removeTarget(id_target) : Boolean
   removeTarget([id_route, id_target]) : Boolean
 
-  xtgt: id_target => xstream(id_target, router.xtgt_api)
-  xresp: id_target => xstream(id_target, router.xres_api)
+  addDefer_v(target, inc_pktctx, dp=ao_defer_v()) : {id, promise}
+
   xstream(id_target, xapi) : tgt_stream_obj<xapi>
     where tgt_stream_obj is {__proto__: xapi, id, stream, abort, when_done, tgt_router}
 
   */
 
+  addOnce(ms, absent, target=xpkt_body) ::
+    let xt = this.timeouts
+    let dp = xt.ao_defer_v()
+    let xtgt = this.addDefer_v(target, false, dp)
+    xtgt.promise = xt.absent @
+      absent, ms, xtgt.promise
+
+    // enusre the root defered is resolved or rejected
+    xtgt.promise.then(dp[2])
+    return xtgt
+
   addStream(id_target, async_target, on_error=this._on_stream_error) ::
-    let res = this.xtgt(id_target)
+    let res = this.xstream(id_target)
     res.when_done = async_target(res).catch(on_error)
     return res
 
   async removeAfter(id_target, p_done) ::
     try ::
-      await p_done
+      try ::
+        await p_done
+      finally ::
+        if id_target ::
+          this.removeTarget(id_target)
     catch err ::
       this._on_error('after', err)
-    finally ::
-      if id_target ::
-        this.removeTarget(id_target)
 

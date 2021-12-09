@@ -82,14 +82,14 @@ let xtgt_info = hub.local.addStream(
 A promise-based response channel mechanism.
 
 ```javascript
-let xresp_info = hub.local.addOnce()
+let reply = hub.local.addOnce()
 
 hub.send(tgt_addr,
   { msg: 'hello readme example with reply',
-    id_reply: xresp_info.id
+    id_reply: reply.id
   })
 
-let ans = await xresp_info.promise
+let ans = await reply.promise
 console.log('Received reply', ans) 
 ```
 
