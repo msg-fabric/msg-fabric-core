@@ -60,13 +60,13 @@ hub.send(id_route, id_target, meta, body)
 ### Send and await a Reply
 
 ```javascript
-const reply = hub.local.addReply()
+const reply = hub.local.addOnce()
 hub.send(tgt_addr,
   { msg: 'hello reply example',
     id_reply: reply.id
   })
 
-reply.then( ans => {
+reply.promise.then( ans => {
   console.log('Received reply', ans) })
 ```
 

@@ -14,7 +14,6 @@ hub.local
 
 ### Methods
 
-- `addReply(opt)` composed method for `.xresp().with(opt)
 - `addStream(id_target, fn_async_target, on_error=this._on_stream_error)`
     composed method for `fn_async_target(xtgt(id_target)).catch(on_error)`
 - `removeAfter(id, p_done : Promise) : Promise`
@@ -39,6 +38,4 @@ hub.local
   Returns the target id and deferred promise.
 
 - `xstream(id_target, xapi)`
-- `xtgt(id_target)` composed method for `xstream(id_target, router.xtgt_api)`
-- `xresp(id_target)` composed method for `xstream(id_target, router.xresp_api)`
 

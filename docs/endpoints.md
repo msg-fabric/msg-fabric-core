@@ -77,19 +77,19 @@ let xtgt_info = hub.local.addStream(
 - `xtgt.when_done : promise` is resolved when `async_target` callback completes or errors.
 
 
-### `addReply()` promise-based
+### `addOnce()` promise-based
 
-A resettable promise-based response channel mechanism.
+A promise-based response channel mechanism.
 
 ```javascript
-let xresp_info = hub.local.addReply()
+let xresp_info = hub.local.addOnce()
 
 hub.send(tgt_addr,
   { msg: 'hello readme example with reply',
-    id_reply: reply.id
+    id_reply: xresp_info.id
   })
 
-let ans = await reply.response()
+let ans = await xresp_info.promise
 console.log('Received reply', ans) 
 ```
 

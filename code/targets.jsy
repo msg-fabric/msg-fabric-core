@@ -42,8 +42,6 @@ export class TargetRouter ::
 
   */
 
-  addReply(opt) :: return this.xresp().with(opt)
-
   addStream(id_target, async_target, on_error=this._on_stream_error) ::
     let res = this.xtgt(id_target)
     res.when_done = async_target(res).catch(on_error)

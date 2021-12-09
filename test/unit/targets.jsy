@@ -98,41 +98,41 @@ function _test_target_router_with(fn_add_target) ::
     it @ 'message with reply', @::>
       const ts = new Date()
 
-      const reply = hub.local.addReply()
-      expect(reply.response).to.be.a('function')
+      const ep_reply = hub.local.addOnce()
+      expect(ep_reply.promise).to.be.a('promise')
 
-      expect(reply.id).to.be.an('array')
-      expect(reply[0]).to.equal(reply.id[0])
-      expect(reply[1]).to.equal(reply.id[1])
+      expect(ep_reply.id).to.be.an('array')
+      expect(ep_reply[0]).to.equal(ep_reply.id[0])
+      expect(ep_reply[1]).to.equal(ep_reply.id[1])
 
-      let p = reply.response()
       const body = @{}
-        msg: 'a message', ts, id_reply: reply.id
+        msg: 'a message', ts, id_reply: ep_reply.id
 
       await hub.send @ '$unit$', 'a-tgt', body
 
       await check_msg(ts, body)
 
-      const ans = await p
+      const ans = await ep_reply.promise
       expect(ans).to.be.deep.equal @:
         ts_echo: ts
 
 
     it @ 'message with reply timeout', @::>
-      const ts = new Date()
+      let ts = new Date()
 
-      const no_reply = hub.local.addReply({ms_timeout: 10})
-      expect(no_reply.response).to.be.a('function')
+      let absent = Symbol('absent')
+      let no_reply = hub.local.addOnce(10, absent)
 
-      const body = @{}
+      let p = no_reply.promise
+      expect(p).to.be.a('promise')
+
+      let body = @{}
         msg: 'a message', ts, id_other: no_reply.id
 
       await hub.send @ '$unit$', 'a-tgt', body
 
       await check_msg(ts, body)
 
-      let absent = Symbol('absent')
-      let p = no_reply.response(absent)
       expect(p).to.be.fulfilled
       expect(p).to.eventually.be.equal(absent)
       expect(await p).to.equal(absent)

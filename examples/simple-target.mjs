@@ -17,12 +17,12 @@ const tgt_info = hub.local.addTarget(null, (pkt, pktctx) => {
 console.log('Target Info:', tgt_info)
 
 
-const reply = hub.local.addReply()
+const reply = hub.local.addOnce()
 hub.send(tgt_info,
   { msg: 'hello example with reply',
     id_reply: reply.id })
 
-let ans = await reply.response()
+let ans = await reply.promise
 console.log('Received reply', ans)
 
 
