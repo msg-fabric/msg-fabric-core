@@ -60,8 +60,10 @@ export function bindTimeouts(ms_interval, on_fn_error) ::
         schedule() ::
           if x ::
             add @ ms_opt, x.interval
-            return x.cancel
+          return x.cancel
 
+      if ms_opt.initial ::
+        callback(x.cancel)
       return x.schedule()
 
     hashbelt(ms_opt, max_length=4, create=Object) ::
