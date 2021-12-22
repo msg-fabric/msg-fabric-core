@@ -17,7 +17,7 @@ export function bind_basic_p2p(hub) ::
       let dp = router.timeouts.ao_defer_v()
       this[ '_m$_' + id_reply ] = dp[1]
       if ms_timeout ::
-        router.timeouts @ ms_timeout, dp[1]
+        router.timeouts @ ms_timeout, () => dp[1](null)
 
       await channel.send @ '', 'hello', @{}
         version: this.version, id_reply, ts: new Date
