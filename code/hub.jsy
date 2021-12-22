@@ -44,7 +44,7 @@ export class FabricHub ::
 
   localRoute(id_route, is_private) ::
     if null == id_route :: id_route = this.newRouteId()
-    const local = new this.constructor.TargetRouter @
+    let local = new this.constructor.TargetRouter @
       id_route, this.router, this
 
     if ! is_private :: this.router.publishRoute(local)
@@ -71,14 +71,14 @@ export class FabricHub ::
       conn_url = new URL @
         conn_url.asURL ? conn_url.asURL() : ''+conn_url
 
-    const connect = this._url_protos[conn_url.protocol]
+    let connect = this._url_protos[conn_url.protocol]
     if ! connect ::
       throw new Error @ `Connection protocol "${conn_url.protocol}" not found`
     return connect(conn_url)
 
   registerProtocols(protocolList, cb_connect) ::
     as_func(cb_connect)
-    for const protocol of protocolList ::
+    for let protocol of protocolList ::
       this._url_protos[protocol] = cb_connect
     return this
 

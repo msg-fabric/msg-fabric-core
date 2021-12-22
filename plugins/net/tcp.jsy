@@ -6,7 +6,7 @@ export function tcp_plugin(plugin_options={}) ::
   const protocol = plugin_options.protocol || 'tcp'
 
   return hub => ::
-    const tcp_api = @{}
+    let tcp_api = @{}
       connect(...args) ::
         return _common_.createClient @ protocol,
           handler => _tcp_connect @ ...args, handler

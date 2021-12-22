@@ -26,8 +26,7 @@ export function bindTimeouts(ms_interval, on_fn_error) ::
   ms_interval = (0 | ms_interval) || 67 // 15 ticks per second
 
   const qz = [[], []]
-  const tid = _unref @
-    setInterval(tick, ms_interval, Promise.resolve(add))
+  _unref @ setInterval(tick, ms_interval, Promise.resolve(add))
 
   let [f_tick, resolve_tick] = ao_fence_v()
   let [f_empty, resolve_empty] = ao_fence_v()

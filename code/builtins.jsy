@@ -1,9 +1,9 @@
-export const ::{}
+export const {
   assign: o_assign,
   create: o_create,
   freeze: o_freeze,
   defineProperties: o_defprop,
-= Object
+} = Object
 
 export const is_array = Array.isArray
 

@@ -1,10 +1,10 @@
 
 export function bind_recvPacketStream(rstream, recv) ::
   return new Promise @ resolve => ::
-    const on_data = binaryLenPrefixFeedBE @ shutdown,
+    let on_data = binaryLenPrefixFeedBE @ shutdown,
       async pkt_lst => ::
         rstream.pause()
-        for const p of pkt_lst.map(recv) ::
+        for let p of pkt_lst.map(recv) ::
           await p
         rstream.resume()
 
@@ -39,9 +39,9 @@ export function binaryLenPrefixFeedBE(shutdown, recv_dispatch) ::
   return function(data) ::
     q.push(data) ; byteLen += data.byteLength
 
-    const pktList = []
+    let pktList = []
     while 1 ::
-      const buf = parseNext()
+      let buf = parseNext()
       if undefined !== buf ::
         pktList.push @ buf
       else break
@@ -56,22 +56,22 @@ export function binaryLenPrefixFeedBE(shutdown, recv_dispatch) ::
 
       let buf = Buffer.concat(q)
 
-      const b0 = buf.readUInt8(0)
-      const len_fn = lut_byLength[b0]
+      let b0 = buf.readUInt8(0)
+      let len_fn = lut_byLength[b0]
       if null === len_fn ::
         shutdown @ new Error @ 'Binary stream framing error'
         return
 
-      const len_width = len_fn.width
+      let len_width = len_fn.width
       tipLen = len_fn @ buf, b0
       q = @[] buf.slice @ len_width
       byteLen -= len_width
 
     if tipLen <= byteLen ::
-      const buf_q = 1===q.length ? q[0]
+      let buf_q = 1===q.length ? q[0]
         : Buffer.concat(q)
 
-      const buf = buf_q.slice(0, tipLen)
+      let buf = buf_q.slice(0, tipLen)
       q = [buf_q.slice(tipLen)]
       byteLen -= tipLen
       tipLen = null

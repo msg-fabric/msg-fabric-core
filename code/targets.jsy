@@ -45,6 +45,7 @@ export class TargetRouter ::
   */
 
   addOnce(ms, absent, target=xpkt_body) ::
+    if true === target :: target = xpkt_body
     let xt = this.timeouts
     let dp = xt.ao_defer_v()
     let xtgt = this.addDefer_v(target, false, dp)

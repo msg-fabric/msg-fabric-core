@@ -2,19 +2,20 @@
 export function websocket_api(hub, plugin_options) ::
   return @{}
     connectWS(ws_or_wss_url, channel_id) ::
-      const websock = ws_or_wss_url.send ? ws_or_wss_url
+      let websock = ws_or_wss_url.send
+        ? ws_or_wss_url
         : this.createWS(ws_or_wss_url)
 
       if undefined === websock ::
         throw new TypeError @ `Invalid websocket connection`
 
       if null == channel_id :: channel_id = 'websocket'
-      const channel = this.createWSChannel(websock, {channel_id})
+      let channel = this.createWSChannel(websock, {channel_id})
       return channel.init()
 
 
     createWSChannel(websock, options) ::
-      const channel = this.createStreamChannel @ websock, options
+      let channel = this.createStreamChannel @ websock, options
       Object.defineProperty @ channel, 'websock', {value: websock}
 
       return Object.assign @ channel, @{}

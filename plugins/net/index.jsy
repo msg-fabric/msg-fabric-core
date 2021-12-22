@@ -3,9 +3,9 @@ import { tls_plugin } from './tls.jsy'
 import { tcp_plugin } from './tcp.jsy'
 
 export default function nodejs_net_plugin(plugin_options={}) ::
-  const pi_stream = direct_stream_plugin @ plugin_options
-  const pi_tcp = tcp_plugin @ plugin_options
-  const pi_tls = tls_plugin @ plugin_options
+  let pi_stream = direct_stream_plugin @ plugin_options
+  let pi_tcp = tcp_plugin @ plugin_options
+  let pi_tls = tls_plugin @ plugin_options
 
   return hub => ::
     pi_stream @ hub

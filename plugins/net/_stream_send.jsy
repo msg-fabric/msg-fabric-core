@@ -5,19 +5,20 @@ export function bind_sendPacketStream(wstream) ::
 
   let p_drain = null, on_drain
 
-  const p = new Promise @ resolve => ::
-    wstream.on @ 'drain', _drained
-    wstream.once @ 'error', shutdown
-    wstream.once @ 'close', shutdown
+  ::
+    let p = new Promise @ resolve => ::
+      wstream.on @ 'drain', _drained
+      wstream.once @ 'error', shutdown
+      wstream.once @ 'close', shutdown
 
-    function shutdown() ::
-      if null !== wstream ::
-        wstream.off @ 'drain', _drained
-        wstream.end()
-        wstream = null
-        resolve()
+      function shutdown() ::
+        if null !== wstream ::
+          wstream.off @ 'drain', _drained
+          wstream.end()
+          wstream = null
+          resolve()
 
-  return @[] send_packed, p
+    return @[] send_packed, p
 
   function send_packed(d_pkt) ::
     if null === wstream ::
@@ -25,7 +26,7 @@ export function bind_sendPacketStream(wstream) ::
       return Promise.resolve()
 
     d_pkt = Buffer.from(d_pkt)
-    const len = d_pkt.byteLength
+    let len = d_pkt.byteLength
 
     let pkt_hdr
     if len < 254 ::
@@ -35,7 +36,7 @@ export function bind_sendPacketStream(wstream) ::
     else ::
       ; (pkt_hdr = pkt_hdr_5).writeUInt32BE @ len, 1
 
-    const s_pkt = Buffer.concat @# pkt_hdr, d_pkt
+    let s_pkt = Buffer.concat @# pkt_hdr, d_pkt
     if wstream.write(s_pkt) ::
       return // sent immediate, no backpressure promise
     // backpressure as promise for next drain event
