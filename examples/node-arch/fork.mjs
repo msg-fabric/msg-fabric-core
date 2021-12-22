@@ -7,9 +7,7 @@ export default mf_hub
 
 // use process to access spawning IPC channel -- see https://nodejs.org/dist/latest-v17.x/docs/api/child_process.html#subprocesssendmessage-sendhandle-options-callback
 export const mf_chan_parent =
-  mf_hub.direct.connectMsgPort(process, {
-    debug(msg, fn) { console.info('MSG:', msg, fn) },
-  })
+  mf_hub.direct.connectMsgPort(process)
 
 mf_chan_parent.then(async chan => {
   console.log('Subporcess connecting to main.mjs:', chan)
