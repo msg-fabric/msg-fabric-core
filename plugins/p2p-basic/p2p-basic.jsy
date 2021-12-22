@@ -11,20 +11,26 @@ export function bind_basic_p2p(hub) ::
         channel: @{} value: channel
         router: @{} value: channel.router
 
-    async hello(ms_timeout=500) ::
+    ms_timeout: 5000
+    async hello(ms_timeout=this.ms_timeout) ::
       let { channel, router } = this
+      let xt = router.timeouts
       let id_reply = hub.randId(6)
       let dp = router.timeouts.ao_defer_v()
       this[ '_m$_' + id_reply ] = dp[1]
       if ms_timeout ::
-        router.timeouts @ ms_timeout, () => dp[1](null)
+        xt.add @ ms_timeout, () => dp[1](null)
 
-      await channel.send @ '', 'hello', @{}
-        version: this.version, id_reply, ts: new Date
+      let ival_cancel = xt.interval @
+        {ms: 250, initial: true},
+        () =>
+          channel.send @ '', 'hello', @{}
+            version: this.version, id_reply, ts: new Date
 
       let ans
       try :: ans = await dp[0]
       finally ::
+        ival_cancel()
         delete this[ '_m$_' + id_reply ]
 
       let { public_routes } = router
