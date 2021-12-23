@@ -11,6 +11,8 @@ export const mf_chan_parent =
 
 mf_chan_parent.then(async chan => {
   console.log('Subporcess connecting to main.mjs:', chan)
+  mf_hub.connectUpstream(chan)
+
   let pi = await chan.peer_info
   if (pi)
     console.log('Subporcess connected to main.mjs:', chan, pi)

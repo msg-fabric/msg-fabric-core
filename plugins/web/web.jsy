@@ -1,7 +1,7 @@
-
 export function web_basic_api(hub, plugin_options) ::
   const yes = @=> true
-  let {hello} = plugin_options
+
+  let hello = plugin_options.hello || 'mc'
 
   return @{}
     connect(tgt, options) ::
@@ -16,10 +16,11 @@ export function web_basic_api(hub, plugin_options) ::
 
       let [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
 
-      let dispatch = tgt_send.postMessage || tgt_send.send
-
       let {codec} = options
-      let args = @[] this.p2p || hub.p2p, dispatch.bind(tgt_send), codec
+      let args = @[]
+        this.p2p || hub.p2p,
+        (tgt_send.postMessage || tgt_send.send).bind(tgt_send),
+        codec
 
       let [recv, channel] = codec
         ? hub.router.codec_channel(...args)
@@ -42,24 +43,26 @@ export function web_basic_api(hub, plugin_options) ::
         opt = {client_id: opt}
 
       let mc = new MessageChannel()
-      tgt1.postMessage @ {hello, ...opt}, [mc.port1]
-      if !tgt2 || !tgt2.postMessage ::
+      tgt1.postMessage @ {hello, mc_port: mc.port1, ...opt}, [mc.port1]
+      if tgt2 && tgt2.postMessage ::
+        tgt2.postMessage @ {hello, mc_port: mc.port1, ...opt}, [mc.port2]
+      else ::
         return this.connect @ mc.port2, tgt2
-      else tgt2.postMessage @ {hello, ...opt}, [mc.port2]
 
     mc_server(host, options={}) ::
       let id_pre = options.channel_id || 'mcsv-'
       host.addEventListener @ 'message', evt => ::
         let {data} = evt
         if data && hello == data.hello ::
-          evt.stopPropagation()
+          if evt :: evt.stopPropagation()
 
-          let res = this.connect @ evt.ports[0],
+          let chan = this.connect @
+            data.mc_port || evt.ports[0],
             @{} ... options
                 channel_id: `${id_pre}${data.client_id}`
 
-          if options.on_connect ::
-            options.on_connect(res, data)
+          if options.on_mc_connection ::
+            options.on_mc_connection(chan, data)
 
 
     p2p: plugin_options.p2p
@@ -67,6 +70,6 @@ export function web_basic_api(hub, plugin_options) ::
 
   function _on_msg_evt(tgt_recv, fn_recv_pkt, fn_accept) ::
     tgt_recv.addEventListener @ 'message',
-      evt => true === fn_accept(evt) && fn_recv_pkt(evt.data)
+      evt => true === fn_accept(evt) && fn_recv_pkt(evt.data, evt)
       @{} passive: true
 

@@ -1,4 +1,6 @@
-export function direct_plugin({p2p}={}) ::
+export function direct_plugin({p2p, hello}={}) ::
+  hello = hello || 'mc'
+
   let _direct_ = @{}
     connect(peer, channel_id) ::
       return this.connectPair(peer, channel_id)[0]
@@ -17,6 +19,34 @@ export function direct_plugin({p2p}={}) ::
           recv_peer, channel_id
 
       return @[] chan_self, chan_peer
+
+
+    mc_connect(opt, tgt1, tgt2) ::
+      if 'string' === typeof opt ::
+        opt = {client_id: opt}
+
+      let mc = new MessageChannel()
+      tgt1.postMessage @ {hello, mc_port: mc.port1, ...opt}, [mc.port1]
+
+      if tgt2 && tgt2.postMessage ::
+        tgt2.postMessage @ {hello, mc_port: mc.port2, ...opt}, [mc.port2]
+      else ::
+        return this.connectMsgPort @ mc.port2, tgt2
+
+    mc_server(host, options={}) ::
+      let id_pre = options.channel_id || 'mcsv-'
+      let subscribe = options.subscribe || _on_msg_evt
+      subscribe @ host, (data, evt) => ::
+        if data && hello == data.hello ::
+          if evt :: evt.stopPropagation()
+
+          let chan = this.connectMsgPort @
+            data.mc_port || evt.ports[0],
+            @{} ... options
+                channel_id: `${id_pre}${data.client_id}`
+
+          if options.on_mc_connection ::
+            options.on_mc_connection(chan, data)
 
 
   return hub => ::
@@ -56,5 +86,5 @@ export function direct_plugin({p2p}={}) ::
     if tgt_recv.on ::
       tgt_recv.on @ 'message', fn_recv_pkt
     else ::
-      tgt_recv.onmessage = evt => fn_recv_pkt(evt.data)
+      tgt_recv.onmessage = evt => fn_recv_pkt(evt.data, evt)
 
