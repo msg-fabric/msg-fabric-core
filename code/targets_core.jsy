@@ -1,6 +1,8 @@
 import { as_func, p_then } from './builtins.jsy'
 import { ao_defer_v, ao_push_stream } from './timeouts.jsy'
 
+const xpkt_body = pkt => pkt.body
+
 export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router) ::
   // as closures over private variables (targets_map)
   return @{} ready: _add_target_route(id_route)
@@ -59,19 +61,19 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
       targets_map.set @ id[1], as_func(target)
     return id
 
-  function addDefer_v(target, inc_pktctx, dp=ao_defer_v()) ::
+  function addDefer_v(target=true, inc_pktctx=false, dp=ao_defer_v()) ::
     let id = addTarget @ null,
-      ! inc_pktctx ? dp[1]
-        : (...zpkt) => dp[1](...zpkt)
+      ! inc_pktctx ? dp[1] // resolve with just the packet
+        : (...zpkt) => dp[1](...zpkt) // resolve with the args array
 
     let p = dp[0]
     tgt_router.removeAfter(id, p)
     if target ::
-      p = p.then(target)
+      p = p.then(true === target ? xpkt_body : target)
 
     return @{}
       id, 0: id[0], 1: id[1],
-      promise: p
+      promise: p, abort: dp[2]
 
   function xstream(id_target, xapi) ::
     let {stream, when_done, abort, push} = ao_push_stream(true)

@@ -1,8 +1,6 @@
 import { o_assign, o_create } from './builtins.jsy'
 import { bindCoreTargetAPI } from './targets_core.jsy'
 
-const xpkt_body = pkt => pkt.body
-
 export class TargetRouter ::
 
   constructor(id_route, router, hub) ::
@@ -44,16 +42,14 @@ export class TargetRouter ::
 
   */
 
-  addOnce(ms, absent, target=xpkt_body) ::
-    if true === target :: target = xpkt_body
-    let xt = this.timeouts
-    let dp = xt.ao_defer_v()
-    let xtgt = this.addDefer_v(target, false, dp)
-    xtgt.promise = xt.absent @
+  addOnce(ms, absent, target=true) ::
+    let xtgt = this.addDefer_v(target, false)
+    // setup timeout.absent to cancel deferred
+    xtgt.promise = this.timeouts.absent @
       absent, ms, xtgt.promise
 
     // enusre the root defered is resolved or rejected
-    xtgt.promise.then(dp[2])
+    xtgt.promise.then(xtgt.abort)
     return xtgt
 
   addStream(id_target, async_target, on_error=this._on_stream_error) ::
@@ -69,5 +65,6 @@ export class TargetRouter ::
         if id_target ::
           this.removeTarget(id_target)
     catch err ::
-      this._on_error('after', err)
+      if err instanceof Error ::
+        this._on_error('after', err)
 
