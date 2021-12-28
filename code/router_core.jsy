@@ -104,8 +104,7 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
         return @{} route, cancel
 
       else ::
-        let ttl = hub_router.timeouts.ttl @ opt.ms_ttl,
-          opt.pre_cancel, cancel, opt.on_cancel
+        let ttl = hub_router.timeouts.ttl(opt.ms_ttl, cancel)
         ttl.route = false === opt.ttl_reset ? route
           : route = ttl.with_reset(route)
         return ttl

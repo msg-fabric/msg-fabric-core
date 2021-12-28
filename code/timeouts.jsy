@@ -13,7 +13,8 @@ const timeout_ttl = @{}
     let self = @{} __proto__: this,
       async _query_ttl(cancel) ::
         try ::
-          await query_ttl(self)
+          if query_ttl ::
+            await query_ttl(self)
         finally ::
           if ! self.extend ::
             cancel()
