@@ -11,7 +11,7 @@ const _rpis_ = (defines, ...args) => [
   ...args,
   rpi_dgnotify()]
 
-const external_node = id => /^node:/.test(id) || builtinModules.includes(id)
+const external = id => /^\w+:/.test(id) || builtinModules.includes(id)
 const sourcemap = 'inline'
 
 const test_plugins_nodejs = _rpis_({PLAT_NODEJS: true})
@@ -23,19 +23,18 @@ export default [
       output: {
         file: './_out/__unittest.hub.umd.js',
         format: 'umd', name:'MsgFabricTestHub', sourcemap },
-      external: [], plugins: test_plugins_web },
+      external, plugins: test_plugins_web },
 
     { input: './unittest.jsy',
       output: {
         file: './_out/__unittest.iife.js',
         format: 'iife', sourcemap },
-      external: [], plugins: test_plugins_web },
+      external, plugins: test_plugins_web },
 
     { input: './unittest.jsy',
       output: {
         file: './_out/__unittest.cjs.js',
         format: 'cjs', sourcemap },
-      external: external_node,
-      plugins: test_plugins_nodejs },
+      external, plugins: test_plugins_nodejs },
 
 ]

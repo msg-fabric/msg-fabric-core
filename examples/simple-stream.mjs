@@ -3,8 +3,6 @@ import MsgFabric from 'msg-fabric-core'
 const hub = MsgFabric.create()
 hub.router.ref() // keep alive despite no active I/O
 
-console.log('Local', hub.local)
-
 
 const tgt_info = hub.local.addStream(null, async self => {
   console.log('Stream top', self)
@@ -19,6 +17,7 @@ const tgt_info = hub.local.addStream(null, async self => {
     }
   }
 })
+
 console.log('Target Info:', tgt_info)
 
 
