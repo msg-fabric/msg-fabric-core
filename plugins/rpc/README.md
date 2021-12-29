@@ -1,7 +1,7 @@
 # `rpc` plugin for msg-fabric-core 
 
 ```javascript
-let ep_my_api = hub.rpc.endpoing({
+let ep_my_api = hub.rpc.endpoint({
   // rpc methods
   m$_alpha(rpcx, ...args) { /* ... */ },
   m$_beta(rpcx, ...args) { /* ... */ },
