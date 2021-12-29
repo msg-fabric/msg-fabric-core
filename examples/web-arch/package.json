@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [],
+  "dependencies": {},
+  "devDependencies": {
+    "qsrv": "^0.2.0"
+  },
+  "scripts": {
+    "clean": "rm -rf ./root/esm/* ./esm/* ./umd/*",
+    "preserve": "npm run build",
+    "serve": "npx qsrv --root ./root -f ./root/index.html -- ./root ./root/esm",
+    "build": "npx rollup --config",
+    "watch": "npx rollup --config --watch"
+  }
+}
