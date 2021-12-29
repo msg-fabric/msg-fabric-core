@@ -37,12 +37,12 @@ export function rpc_plugin(rpc_attr_name='rpc') ::
       ep_stateful(...args) ::
         let xrpc = this.api(args.pop())
         return tgt_router.addStream @
-          args[0], xrpc.rpc_stream, args[1]
+          args[0], xtgt => xrpc.rpc_stream(xtgt), args[1]
 
       ep_idempotent(...args) ::
         let xrpc = this.api(args.pop())
         return tgt_router.addTarget @
-          args[0], xrpc.rpc_pkt, args[1]
+          args[0], xrpc.rpc_target(), args[1]
 
     // aliases
     rpc.endpoint = rpc.ep_stateful

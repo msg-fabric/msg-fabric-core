@@ -97,9 +97,8 @@ export default function test_pi_rpc() ::
   it @ 'shape rpc plugin endpoint api', @::>
     let rapi = hub.rpc.api({})
     expect(rapi.rpc).to.be.a('function')
-    expect(rapi.rpc_pkt).to.be.a('function')
     expect(rapi.rpc_stream).to.be.a('function')
-    expect(rapi.rpc_pkt).to.be.a('function')
+    expect(rapi.rpc_target).to.be.a('function')
     expect(rapi.bind_rpc).to.be.a('function')
     expect(rapi.rpc_lookup).to.be.a('function')
     expect(rapi.rpc_log).to.be.a('function')

@@ -17,25 +17,31 @@ export class RPC ::
   with(rpc_api, kw) ::
     return @{} __proto__: this, rpc_api, ...kw
 
-  get rpc_stream() ::
-    // return a bound method, like python
-    return async xtgt => ::
-      for await let [pkt, pktctx] of xtgt.stream || xtgt ::
-        await this.rpc(pkt.body, pktctx)
+  async rpc_stream(xtgt) ::
+    for await let [pkt, pktctx] of xtgt.stream || xtgt ::
+      await this.rpc(pkt.body, pktctx)
 
-  get rpc_pkt() ::
-    // return a bound method, like python
+  rpc_target() ::
     return (pkt, pktctx) =>
       this.rpc(pkt.body, pktctx)
 
+  as_rpc_record(rpc_call) ::
+    if rpc_call ::
+      if ! rpc_call.is_valid_rpc ::
+        rpc_call = this._rpc_record.from(rpc_call)
+
+      if rpc_call.is_valid_rpc() ::
+        return rpc_call
+
   async rpc(rpc_call, pktctx) ::
-    rpc_call = this.rpc_record.from(rpc_call)
+    rpc_call = this.as_rpc_record(rpc_call)
+    if ! rpc_call :: return
 
     let reply, rpc_fn = this.bind_rpc(rpc_call, pktctx)
 
     if false === rpc_fn ::
       this.rpc_log(rpc_call, 'dnu')
-      this.rpc_dnu(rpc_call)
+      await this.rpc_dnu(rpc_call)
       if reply = rpc_call.id_reply  ::
         pktctx.send @ reply,
           @{} err: 'DNU', dnu: true
@@ -93,5 +99,5 @@ class rpc_record extends Array ::
   get method() :: return this[2]
   get args() :: return this.slice(3)
 
-RPC.prototype.rpc_record = rpc_record
+RPC.prototype._rpc_record = rpc_record
 
