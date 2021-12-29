@@ -5,6 +5,11 @@ const mf_hub = MsgFabric.create()
 // set up message channel server here in service worker
 mf_hub.web.mc_server(self, {on_mc_connection})
 
+mf_hub.local.addTarget('well-known', (pkt, pktctx) => {
+  console.log('ServiceWorker well-known pkt:', pkt.body)
+})
+
+
 async function on_mc_connection(chan, data) {
   chan = await chan
   console.log("ServiceWorker on_mc_connection:", chan)

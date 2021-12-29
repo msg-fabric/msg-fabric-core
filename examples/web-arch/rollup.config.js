@@ -8,7 +8,7 @@ const _cfg_ = {
 export default [
   ... add('ui_main'),
   ... add('web_worker'),
-  ... add('svc_worker', {out:'/'}),
+  ... add('svc_worker', {out:'__'}), // use __*.js gitignore pattern
 ]
 
 

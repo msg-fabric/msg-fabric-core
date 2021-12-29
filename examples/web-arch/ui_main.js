@@ -6,14 +6,14 @@ mf_hub.local.addTarget('well-known', (pkt, pktctx) => {
   console.log('ui-main well-known pkt:', pkt.body)
 })
 
-let sw_conn
 if (1) {
   await navigator.serviceWorker
-    .register('/svc_worker.js',
+    .register('/__svc_worker.js',
       { type: 'classic', // type: 'module' is only recently supported by chromeium browsers
         scope: '/'})
 }
 
+let sw_conn
 if (navigator.serviceWorker.controller) {
   // connect to service worker using message channel server
   sw_conn = mf_hub.web.mc_connect('ui',
@@ -32,7 +32,7 @@ if (1) { // connect to web worker
   // connect hub to web worker using message channel server
   mf_hub.web.mc_connect('ui', web_wkr)
 
-  if (0 && sw_conn) {
+  if (1 && sw_conn) {
     // connect web worker to service worker directly
     mf_hub.web.mc_connect('ww-sw', web_wkr,
       navigator.serviceWorker.controller)
