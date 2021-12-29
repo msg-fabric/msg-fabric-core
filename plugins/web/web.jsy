@@ -45,7 +45,7 @@ export function web_basic_api(hub, plugin_options) ::
       let mc = new MessageChannel()
       tgt1.postMessage @ {hello, mc_port: mc.port1, ...opt}, [mc.port1]
       if tgt2 && tgt2.postMessage ::
-        tgt2.postMessage @ {hello, mc_port: mc.port1, ...opt}, [mc.port2]
+        tgt2.postMessage @ {hello, mc_port: mc.port2, ...opt}, [mc.port2]
       else ::
         return this.connect @ mc.port2, tgt2
 
