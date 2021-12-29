@@ -21,11 +21,23 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
         let channel = pktctx.channel
         return channel && channel.undeliverable(pkt, 'target')
 
-    // Trigger on_sent for internal hub routing
-    p_then(pkt.on_sent, pkt)
+    // do not await _target_dispatch so handlers do not block other messages
+    _target_dispatch(target, pkt, pktctx)
 
-    pktctx.tgt_router = tgt_router
-    await target(pkt, pktctx)
+
+  async function _target_dispatch(target, pkt, pktctx) ::
+    // No errors may pass -- send them to tgt_router.on_dispatch_error
+    try ::
+      pktctx.tgt_router = tgt_router
+
+      // Trigger on_sent for internal hub routing
+      p_then(pkt.on_sent, pkt)
+
+      await target(pkt, pktctx)
+    catch err ::
+      tgt_router.on_dispatch_error @ err, {pkt, pktctx}
+    finally ::
+      pktctx.tgt_router = undefined // release tgt_router referenece
 
 
   async function _add_target_route(id_route) ::
@@ -57,6 +69,10 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
 
   function addTarget(id_target, target, with_remove) ::
     let id = @[] id_route, id_target || tgt_router.newTargetId()
+
+    // .id comaptibility mirroring xstream() return value
+    Object.defineProperty @ id, 'id', {value: id}
+
     if null != target ::
       targets_map.set @ id[1], as_func(target)
     return id

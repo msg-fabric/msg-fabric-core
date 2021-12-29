@@ -20,6 +20,7 @@ export class FabricRouter ::
   _initPublicRoutes() :: return new Map()
 
   _on_error(scope, err) :: console.error @ 'router', scope, err
+  on_dispatch_error(err) :: this._on_error('hub_dispatch', err)
 
   ref() :: this.loopback.ref()
   unref() :: this.loopback.unref()

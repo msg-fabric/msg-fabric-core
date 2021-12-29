@@ -33,24 +33,28 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
     pkt = await pkt
     if undefined === pkt || null === pkt :: return
 
-    try ::
-      let id_route = pkt[0] || ''
-      let route = id_route
-        ? routes_map.get(id_route)
-        : (pktctx.channel || {}).peerRoute
+    let id_route = pkt[0] || ''
+    let route = id_route
+      ? routes_map.get(id_route)
+      : (pktctx.channel || {}).peerRoute
 
-      if undefined === route ::
-        if pkt.bcast :: return // don't discover/warn on broadcast packet
+    if undefined === route ::
+      if pkt.bcast :: return // don't discover/warn on broadcast packet
 
+      try ::
         route = await resolveRoute(id_route, true, true)
 
         if undefined === route ::
           let channel = pktctx.channel
           return channel && channel.undeliverable(pkt, 'route')
+      catch err ::
+        hub_router._on_error @ 'hub_dispatch_one', err, {pkt, pktctx}
 
+    // No errors may pass -- send all errors to hub_router.on_dispatch_error
+    try ::
       await route(pkt, pktctx)
     catch err ::
-      hub_router._on_error @ 'dispatch', err, {pkt, pktctx}
+      hub_router.on_dispatch_error @ err, {pkt, pktctx}
     finally ::
       pktctx.channel = undefined // release channel referenece
 

@@ -16,6 +16,7 @@ export class TargetRouter ::
 
   _initTargets() :: return new Map()
   _on_error(scope, err) :: console.error @ 'target', scope, err
+  on_dispatch_error(err) :: this._on_error('tgt_dispatch', err)
   get _on_stream_error() ::
     return err => this._on_error('stream', err)
 
@@ -53,9 +54,9 @@ export class TargetRouter ::
     return xtgt
 
   addStream(id_target, async_target, on_error=this._on_stream_error) ::
-    let res = this.xstream(id_target)
-    res.when_done = async_target(res).catch(on_error)
-    return res
+    let xtgt = this.xstream(id_target)
+    xtgt.when_done = async_target(xtgt).catch(on_error)
+    return xtgt
 
   async removeAfter(id_target, p_done) ::
     try ::
