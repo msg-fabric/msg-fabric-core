@@ -15,7 +15,10 @@ export function websocket_api(hub, plugin_options) ::
 
 
     createWSChannel(websock, options) ::
-      let channel = this.createStreamChannel @ websock, options
+      let channel = this.createStreamChannel @ websock, @{}
+        subscribe: _on_ws_msg_evt
+        ... options
+
       Object.defineProperty @ channel, 'websock', {value: websock}
 
       return Object.assign @ channel, @{}
@@ -46,3 +49,15 @@ export function websocket_api(hub, plugin_options) ::
       let _WebSocket = this.WebSocket || WebSocket
       return new _WebSocket @ ws_or_wss_url+'', plugin_options.protocols
 
+
+  function _on_ws_msg_evt(tgt_recv, fn_recv_pkt, fn_accept) ::
+    tgt_recv.addEventListener @ 'message',
+      async evt => ::
+        if true === fn_accept(evt) ::
+          let data = evt.data
+          if data && 'function' === typeof data.arrayBuffer ::
+            data = new Uint8Array @
+              await data.arrayBuffer() // received blob
+          return fn_recv_pkt(data, evt)
+
+      @{} passive: true
