@@ -37,6 +37,9 @@ export function binaryLenPrefixFeedBE(shutdown, recv_dispatch) ::
   let tipLen=null, byteLen=0, q=[]
 
   return function(data) ::
+    if 0 === data.byteLength ::
+      return
+
     q.push(data) ; byteLen += data.byteLength
 
     let pktList = []
