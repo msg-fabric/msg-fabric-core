@@ -2,8 +2,13 @@ import { o_assign, o_create, is_array, p_res, _ref, _unref } from './builtins.js
 import { ao_defer_v } from './timeouts.jsy'
 
 
+export const local_channel =
+  'function' === typeof structuredClone
+    ? local_clone_channel
+    : local_message_channel
+
 export const channel_kinds = @{}
-  raw_channel, send_channel, codec_channel, local_channel
+  raw_channel, raw_local_channel, send_channel, codec_channel, local_channel
 
 export const base_channel = @{}
   channel_id: null
@@ -111,18 +116,27 @@ export function codec_channel(p2p, dispatch, {encode_pkt, decode_pkt}) ::
 
 
 
-export function local_channel() ::
+export function raw_local_channel({send_pkt, ... chan_ex}) ::
+  return this.raw_channel @ null, null, @{}
+    is_local: true, addRoute: null
+    dispatch: this.dispatch,
+    send: (...args) => send_pkt @ as_send_pkt(args)
+    send_pkt
+    ... chan_ex
+
+export function local_clone_channel() ::
+  // use structuredClone function directly (new in 2021)
+  let [recv, channel] = this.raw_local_channel @:
+    async send_pkt(pkt) ::
+      await recv @ structuredClone(pkt)
+
+  return channel
+
+export function local_message_channel() ::
   let pkt_id=1, map = new Map()
 
   // use MessageChannel for Structured Clone
   let { port1, port2 } = new MessageChannel()
-
-  let send_pkt = pkt => ::
-    let id=pkt_id++, dp=ao_defer_v()
-    map.set(id, dp)
-    port1.postMessage @# id, pkt
-    return dp[0]
-
 
   port2.onmessage = evt => ::
     let [id, pkt] = evt.data
@@ -136,13 +150,14 @@ export function local_channel() ::
       channel.on_send_error(err)
       reject(err)
 
-  let [recv, channel] = this.raw_channel @ null, null, @{}
-    is_local: true, addRoute: null
-    dispatch: this.dispatch,
-    send: (...args) => send_pkt @ as_send_pkt(args)
-    send_pkt
+  let [recv, channel] = this.raw_local_channel @:
     ref() :: _ref(port2)
     unref() :: _unref(port2)
+    send_pkt(pkt) ::
+      let id=pkt_id++, dp=ao_defer_v()
+      map.set(id, dp)
+      port1.postMessage @# id, pkt
+      return dp[0]
 
   _unref(port2)
   return channel
