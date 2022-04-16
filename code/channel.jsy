@@ -45,6 +45,10 @@ export const base_channel = @{}
     return await this
 
 
+export const as_id = id => @
+  'string' === typeof id ? id.split(/[^0-9a-zA-Z=_\/+-]/, 2) // split on anything not base64 / base64url
+  : id
+
 export function as_send_pkt(args) ::
   let id, meta, body, flags
   switch args.length ::
@@ -52,7 +56,7 @@ export function as_send_pkt(args) ::
 
     case 1:
       id = args[0] // ensure id_route and id_target are strings
-      return {... id, 0:`${id[0]}`, 1:`${id[1]}`}
+      return {... args[0], 0:`${id[0]}`, 1:`${id[1]}`}
 
     case 2:
       // args shape is [[id_route, id_target], body]
@@ -75,6 +79,7 @@ export function as_send_pkt(args) ::
 
     default: throw new TypeError()
 
+  id = as_id(id)
   return {... flags, 0:`${id[0]}`, 1:`${id[1]}`, body, ... meta && {meta}, }
 
 
