@@ -57,7 +57,11 @@ export class RPC ::
       catch err ::
         this.rpc_log(rpc_call, 'error', err)
         if reply = pktctx.reply ::
-          reply @: err: `${err}`, ... err.rpc
+          let err_rpc = err.rpc
+          if undefined !== err_rpc ::
+            reply @: err: `${err}`, ... err_rpc
+            return true // error sent -- avoid rpc_error noise
+          reply @: err: `${err}`
         this.rpc_error(err, rpc_call)
       return true
 
@@ -74,6 +78,7 @@ export class RPC ::
     let {id_reply, args} = rpc_call
     if id_reply :: // id_reply
       pktctx.with_reply(id_reply)
+    pktctx.RPC_Error = RPC_Error
     return rpc_fn.bind(this.rpc_api, pktctx, ... args)
 
 
@@ -89,6 +94,11 @@ export class RPC ::
     // DNU is "does not understand" convention from Smalltalk.
     console.warn @ `RPC DNU [%o]`, rpc_call.method
 
+
+class RPC_Error extends Error ::
+  constructor(msg, rpc) ::
+    super(msg)
+    this.rpc = rpc
 
 class rpc_record extends Array ::
   // rpc_call: @[] '!', id_reply, method, ... args
