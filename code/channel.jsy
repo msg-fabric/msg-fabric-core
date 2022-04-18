@@ -47,7 +47,7 @@ export const base_channel = @{}
 
 export const as_id = id => @
     'string' === typeof id ? id.split(/[, ]/, 2) // split on comma or space
-  : id
+  : id.id || id
 
 export function as_send_pkt(args) ::
   let id, meta, body, flags
