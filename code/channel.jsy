@@ -46,7 +46,7 @@ export const base_channel = @{}
 
 
 export const as_id = id => @
-  'string' === typeof id ? id.split(/[^0-9a-zA-Z=_\/+-]/, 2) // split on anything not base64 / base64url
+    'string' === typeof id ? id.split(/[, ]/, 2) // split on comma or space
   : id
 
 export function as_send_pkt(args) ::

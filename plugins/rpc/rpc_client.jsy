@@ -1,3 +1,4 @@
+import {as_id} from '../../code/channel.jsy'
 import {rx_rpc} from './rpc_api.jsy'
 
 export const rpc_client = /* #__PURE__ */
@@ -6,7 +7,7 @@ export const rpc_client = /* #__PURE__ */
       with(kw) ::
         return @{} __proto__: this, ...kw
       to(id, meta=this.meta, kw) ::
-        return this.with @: id, meta, ... kw
+        return this.with @: id: as_id(id), meta, ... kw
 
       ms_timeout: 1000
       absent: {timeout: true, err: 'timeout'}
