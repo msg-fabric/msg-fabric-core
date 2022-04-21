@@ -59,9 +59,8 @@ export class RPC ::
       catch err ::
         this.rpc_log(rpc_call, 'error', err)
         if reply = pktctx.reply ::
-          let err_rpc = err.rpc
-          if undefined !== err_rpc ::
-            reply @: err: `${err.message || err}`, rpc: err_rpc
+          if err.is_rpc ::
+            reply @: err: `${err.message || err}`, rpc: err.rpc
             return true // error sent -- avoid rpc_error noise
           reply @: err: `${err.message || err}`
         this.rpc_error(err, rpc_call)
