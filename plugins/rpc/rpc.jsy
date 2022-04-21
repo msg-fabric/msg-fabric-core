@@ -27,8 +27,8 @@ export function rpc_plugin(rpc_attr_name='rpc') ::
 
       client, to: (...args) => client.to(...args)
 
-      RPC, api(rpc_api) ::
-        return this.RPC.create(rpc_api)
+      RPC, api(rpc_api, ns) ::
+        return Object.assign(this.RPC.create(rpc_api), ns)
 
       stream(xtgt, rpc_api) ::
         return this.api(rpc_api)

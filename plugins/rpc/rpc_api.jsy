@@ -66,6 +66,9 @@ export class RPC ::
         this.rpc_error(err, rpc_call)
       return true
 
+    await this.rpc_invalid(rpc_call, pktctx)
+
+
   bind_rpc(rpc_call, pktctx) ::
     if rpc_call.is_valid_rpc() ::
       let rpc_fn = this.rpc_lookup(rpc_call)
@@ -90,6 +93,9 @@ export class RPC ::
 
   rpc_error(err, rpc_call) ::
     console.warn @ `RPC ERROR [%o]`, rpc_call.method, err
+
+  rpc_invalid(pkt, pktctx) ::
+    console.warn @ `Non-RPC pkt: %o`, pkt.body
 
   rpc_dnu(rpc_call) ::
     // DNU is "does not understand" convention from Smalltalk.
