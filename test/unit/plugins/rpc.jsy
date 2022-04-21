@@ -123,13 +123,14 @@ export default function test_pi_rpc() ::
       @[] 'rpc_log', 'm$_one', 'call'
       @[] 'm$_one', 100, @[] 'a', ['b'], {c: 1942}, 21
       @[] 'rpc_log', 'm$_one', 'done', 100
-    expect(res).to.deep.equal @ {ok: 100}
+    expect(res).to.equal @ 100
 
   it @ 'rpc_query with non-existant method', @::>
     let xrpc = hub.rpc.endpoint @ 'an-api', simple_api.with_rpc_lookup()
     let c = hub.rpc.to(xrpc.id)
-    let res = await c.rpc_query @ 'm$ not an existing method'
-    expect(res).to.deep.equal @ {dnu: true, err: 'DNU'}
+    let err = await c.rpc_query('m$ not an existing method').catch(err => err)
+    expect(''+err).to.equal @ 'Error: DNU'
+    expect(err.dnu).to.equal @ true
     expect(log.calls).to.deep.equal @#
       @[] 'rpc_lookup', 'm$ not an existing method', false
       @[] 'rpc_dnu', 'm$ not an existing method'
@@ -137,8 +138,9 @@ export default function test_pi_rpc() ::
   it @ 'rpc_query with exception', @::>
     let xrpc = hub.rpc.endpoint @ 'an-api', simple_api.with_rpc_lookup()
     let c = hub.rpc.to(xrpc.id)
-    let res = await c.rpc_query @ 'm$_throw_fit'
-    expect(res).to.deep.equal @ {err: 'Error: a fit'}
+    let err = await c.rpc_query('m$_throw_fit').catch(err => err)
+    expect(''+err).to.equal @ 'Error: a fit'
+
     expect(log.calls).to.deep.equal @#
       @[] 'rpc_lookup', 'm$_throw_fit', true
       @[] 'm$_throw_fit', 100, []
@@ -156,7 +158,7 @@ export default function test_pi_rpc() ::
       @[] 'post m$_three', 102, 103, @[] 'third as post', 22
       @[] 'm$_three', 103, @[] 'third as query', 23
       @[] 'post m$_three', 103, 104, @[] 'third as query', 23
-      @[] 'await results', @[] undefined, {ok: 101}, undefined, {ok: [ 103, 104 ]}
+      @[] 'await results', @[] undefined, 101, undefined, [ 103, 104 ]
 
   it @ 'Idempotent endpoint (parallel) RPC', @=>> ::
     const id_api = hub.rpc.ep_idempotent @ 'an-api', simple_api
@@ -169,4 +171,4 @@ export default function test_pi_rpc() ::
       @[] 'm$_three', 103, @[] 'third as query', 23
       @[] 'post m$_three', 102, 104, @[] 'third as post', 22
       @[] 'post m$_three', 103, 104, @[] 'third as query', 23
-      @[] 'await results', @[] undefined, {ok: 101}, undefined, {ok: [ 103, 104 ]}
+      @[] 'await results', @[] undefined, 101, undefined, [ 103, 104 ]

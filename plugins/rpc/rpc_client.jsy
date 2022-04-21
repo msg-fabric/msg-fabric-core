@@ -1,5 +1,6 @@
 import {as_id} from '../../code/channel.jsy'
 import {rx_rpc} from './rpc_api.jsy'
+import {RPC_Error} from './rpc_error.jsy'
 
 export const rpc_client = /* #__PURE__ */
   Object.create @
@@ -28,7 +29,12 @@ export const rpc_client = /* #__PURE__ */
           this.ms_timeout, this.absent
 
         await this._rpc_v(method, xtgt.id, args)
-        return xtgt.promise
+        return xtgt.promise.then(this._rpc_reply)
+
+      _rpc_reply(o) ::
+        if o.err ::
+          throw RPC_Error.from(o)
+        return o.ok
 
       _rpc_v(method, id_reply, args_v) ::
         let {id, meta} = this

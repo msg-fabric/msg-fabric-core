@@ -1,3 +1,5 @@
+import {RPC_Error} from './rpc_error.jsy'
+
 export const rx_rpc = /[\$\s]/
 
 export class RPC ::
@@ -59,9 +61,9 @@ export class RPC ::
         if reply = pktctx.reply ::
           let err_rpc = err.rpc
           if undefined !== err_rpc ::
-            reply @: err: `${err}`, ... err_rpc
+            reply @: err: `${err.message || err}`, rpc: err_rpc
             return true // error sent -- avoid rpc_error noise
-          reply @: err: `${err}`
+          reply @: err: `${err.message || err}`
         this.rpc_error(err, rpc_call)
       return true
 
@@ -94,11 +96,6 @@ export class RPC ::
     // DNU is "does not understand" convention from Smalltalk.
     console.warn @ `RPC DNU [%o]`, rpc_call.method
 
-
-class RPC_Error extends Error ::
-  constructor(msg, rpc) ::
-    super(msg)
-    this.rpc = rpc
 
 class rpc_record extends Array ::
   // rpc_call: @[] '!', id_reply, method, ... args

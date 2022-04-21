@@ -1,0 +1,13 @@
+export class RPC_Error extends Error ::
+  get is_rpc() :: return true
+
+  constructor(msg, rpc) ::
+    super(msg)
+    if rpc ::
+      this.rpc = rpc
+
+  static from({err, rpc, dnu}) ::
+    let self = new this(err, rpc)
+    if dnu :: self.dnu = dnu
+    return self
+
