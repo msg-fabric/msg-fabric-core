@@ -6,8 +6,7 @@ export class RPC_Error extends Error ::
     if rpc ::
       this.rpc = rpc
 
-  static from({err, rpc, dnu}) ::
+  static from({err, rpc, ...kw}) ::
     let self = new this(err, rpc)
-    if dnu :: self.dnu = dnu
-    return self
+    return Object.assign(self, kw)
 
