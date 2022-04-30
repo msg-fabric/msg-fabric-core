@@ -14,7 +14,9 @@ const _cfg_ = {
   external: id => /^\w+:/.test(id) || builtinModules.includes(id),
   plugins: _rpis_({PLAT_ESM: true}) }
 
-const _cfg_min_ = process.env.NO_MINIFI ? null :
+
+let is_watch = process.argv.includes('--watch')
+const _cfg_min_ = is_watch || 'undefined'===typeof rpi_terser ? null :
   { ... _cfg_, plugins: [ ... _cfg_.plugins, rpi_terser() ]}
 
 

@@ -25,7 +25,7 @@ export default function(use_cbor) ::
           this.a_conn_info = Object.assign @ {}, conn_info
           expect(this.a_conn_info)
           .to.be.deep.equal @:
-            address, port
+            host: address, address, port
           
       async after() ::
         this.svr_a.unref().close()

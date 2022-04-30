@@ -35,7 +35,7 @@ export default function(use_cbor) ::
 
           expect(this.a_conn_info)
           .to.be.deep.equal @:
-            address, port
+            host: address, address, port
 
           this.a_conn_info.ca = @[] tls_opt.cert
           

@@ -14,11 +14,12 @@ export function net_common(hub, plugin, protocol, asURL) ::
           
 
   let conn_info_base = @{} toString: asURL, asURL, protocol
-  let sock_conn_info = sock => @:
-    __proto__: conn_info_base
-    address: sock.localAddress, port: sock.localPort
-    remote: @{} __proto__: conn_info_base
-      address: sock.remoteAddress, port: sock.remotePort
+    from(addr, port, self={__proto__: this}) ::
+      if null != port ::
+        self.host = self.address = addr
+        self.port = port
+      else self.path = addr
+      return self
 
   hub.registerProtocols @ [protocol, `${protocol}:`],
     url => plugin.connect @ _common_.unpackConnectURL(url)
@@ -37,8 +38,11 @@ export function net_common(hub, plugin, protocol, asURL) ::
       sock.setNoDelay(true)
       let channel = this.createStreamChannel(sock, sock, channel_id || protocol)
       return Object.defineProperties @ channel, @{}
-        conn_info: @{} enumerable: true, value() :: return sock_conn_info(sock)
         sock: @{} enumerable: true, get() :: return sock
+        conn_info: @{} enumerable: true, value() ::
+          let res = conn_info_base.from(sock.localAddress, sock.localPort)
+          res.remote = conn_info_base.from(sock.remoteAddress, sock.remotePort)
+          return res
             
 
 
@@ -66,12 +70,8 @@ export function net_common(hub, plugin, protocol, asURL) ::
       svr.conn_info = function (asPromise) ::
         let addr = svr.address()
         if null != addr ::
-          let res = @{} __proto__: conn_info_base
-          if 'string' === typeof addr ::
-            res.path = addr
-          else if addr.address ::
-            res.address = addr.address
-            res.port = addr.port
+          let res = conn_info_base.from @
+            addr.address || addr, addr.port
           return asPromise ? Promise.resolve(res) : res
 
         else if asPromise ::
