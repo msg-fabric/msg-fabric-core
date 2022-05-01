@@ -1,4 +1,4 @@
-import { o_assign, as_func } from '../../code/builtins.jsy'
+import { o_assign, is_func, as_func } from '../../code/builtins.jsy'
 import { DiscoFirst } from './ops.jsy'
 
 export function discovery_plugin(opt={}) ::
@@ -9,7 +9,12 @@ export function discovery_plugin(opt={}) ::
     'string': (accept, fn) => q => q.key.startsWith(accept) ? fn(q) : void 0
     'object'(accept, fn) ::
       as_func(accept.test) // regexp or similar
-      return q => accept.test(q.key) ? fn(q) : void 0
+      if ! fn ::
+        as_func(accept.discover)
+        fn = q => accept.discover(q)
+
+      return ! is_func(accept.test) ? fn
+        : q => accept.test(q.key) ? fn(q) : void 0
 
 
   let _disco_ = @{}
@@ -17,7 +22,7 @@ export function discovery_plugin(opt={}) ::
     _disco_timeout(resolve) :: return this.timeouts(opt.ms_timeout || 2000, resolve)
 
     addDiscovery(accept, fn_discover) ::
-      if fn_discover ::
+      if fn_discover || !is_func(accept) ::
         accept = _lut_discover_fn[typeof accept](accept, fn_discover)
       this.discovery = [... (this.discovery || []), as_func(accept)]
 
