@@ -34,8 +34,9 @@ export function discovery_plugin(opt={}) ::
         async discoverRoute(id_route, router_ctx) ::
           let fns = this.discovery
           if fns ::
+            router_ctx ||= this.router_ctx
             let query = @{} key: id_route, id_route, kind: 'route', router_ctx
-            await disco_first.cached(this, fns, query)
+            return await disco_first.cached(this, fns, query)
 
 
       o_assign @ Hub.TargetRouter.prototype, _disco_, @{}
@@ -43,5 +44,5 @@ export function discovery_plugin(opt={}) ::
           let fns = this.discovery
           if fns ::
             let query = @{} key: id_target, id_target, kind: 'target', pktctx
-            await disco_first.cached(this, fns, query)
+            return await disco_first.cached(this, fns, query)
 

@@ -46,6 +46,7 @@ export class FabricRouter ::
 
   discoverRoute(id_route, router_ctx) ::
     // see plugins/discovery
+    // router_ctx || = this.router_ctx
 
 
   addPeer(id_route, channel, opt) ::
