@@ -11,12 +11,12 @@ export class DiscoFirst ::
     for let p of q ::
       await p
 
-    this.answer(false)
+    this.query.abort()
 
   async _disco_one(fn_disco) ::
     try ::
       let res = await fn_disco(this.query)
-      this.answer(res)
+      this.query.answer(res)
     catch err ::
       this.host._on_error('discovery', err)
 
@@ -27,31 +27,44 @@ export class DiscoFirst ::
       belt = host._disco_cache()
       this._cache.set(discovery_fns, belt)
 
-    let p, {key} = query
-    for let cache of belt ::
+    let p, cache, {key} = query
+    for cache of belt ::
       if p = cache[key] ::
         return p
 
-    belt[0][key] = p =
+    ;(cache = belt[0])[key] = p =
       this.search @
         host, discovery_fns, query
-    return p
+
+    return cache[key] = await p
 
   async search(host, discovery_fns, query) ::
     let [p_search, _resolve] = host.timeouts.ao_defer_v()
-    Object.assign @ query, {host, p_search, done: false}
 
     let self = @{}
-      __proto__: this, host, query,
-      answer(res) ::
+      __proto__: this, host, query
+
+    Object.assign @ query, @{}
+      host, p_search, done: false
+
+      abort() ::
+        _resolve(false)
+
+      async answer(res) ::
         if null != res ::
-          query.done = true
+          if res.then ::
+            res = await res
+
           if true === res || ! res ::
             res = null // falsy and true is "already exists"
           _resolve(res)
-        return query.done
+        return res
 
-    host._disco_timeout(self.answer)
-    self._disco_all(discovery_fns)
-    return p_search
+    try ::
+      self._disco_all(discovery_fns)
+      host._disco_timeout(query.abort)
+
+      return await p_search
+    finally ::
+      query.done = true
 
