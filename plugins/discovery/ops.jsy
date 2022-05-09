@@ -61,8 +61,8 @@ export class DiscoFirst ::
         return res
 
     try ::
-      self._disco_all(discovery_fns)
       host._disco_timeout(query.abort)
+      self._disco_all(discovery_fns)
 
       return await p_search
     finally ::
