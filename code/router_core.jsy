@@ -6,8 +6,9 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
   const loopback = ({ dispatch, __proto__: hub_router}).local_channel()
 
   const router_ctx = @{}
-    hub, hub_router, timeouts: hub_router.timeouts,
-    loopback, send: loopback.send
+    hub, hub_router, resolveRoute,
+    timeouts: hub_router.timeouts,
+    loopback, send: loopback.send,
     to(id) :: return (...z) => this.send(id, ...z)
 
   const pktctx0 = @{} __proto__: router_ctx,
@@ -118,11 +119,15 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
         route = id_route.route || id_route
         id_route = id_route.id_route || id_route[0]
 
-      if null == route || route === routes_map.get(id_route) ::
-        // remove only if route is currently at id_route
-        db_when.delete @ id_route
-        return routes_map.delete @ id_route
-      return false
+      // remove only if route is currently at id_route
+      if null != route && route !== routes_map.get(id_route) ::
+        return false
+
+      // remove all aliases of route
+      for let [id, fn] of routes_map.entries() ::
+        if route === fn ::
+          routes_map.delete @ id
+      return true
 
     getRoute(id_route) ::
       return routes_map.get(id_route)
