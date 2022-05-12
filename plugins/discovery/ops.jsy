@@ -27,16 +27,17 @@ export class DiscoFirst ::
       belt = host._disco_cache()
       this._cache.set(discovery_fns, belt)
 
-    let p, cache, {key} = query
+    let ans, cache, key = query.key
     for cache of belt ::
-      if p = cache[key] ::
-        return p
+      if ans = cache[key] ::
+        return ans
 
-    ;(cache = belt[0])[key] = p =
-      this.search @
-        host, discovery_fns, query
+    cache = belt[0]
+    cache[key] = ans = this.search @
+      host, discovery_fns, query
 
-    return cache[key] = await p
+    ans.finally @:: delete cache[key]
+    return ans
 
   async search(host, discovery_fns, query) ::
     let [p_search, _resolve] = host.timeouts.ao_defer_v()
