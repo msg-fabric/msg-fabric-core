@@ -7,19 +7,21 @@ export const rpc_client = /* #__PURE__ */
     @{}
       with(kw) ::
         return @{} __proto__: this, ...kw
-      to(id, meta=this.meta, kw) ::
-        return this.with @: id: as_id(id), meta, ... kw
+      to(id, meta, kw) ::
+        id = as_id(id)
+        if id ::
+          kw = @{} ... kw, id
+          if null != meta ::
+            kw.meta = meta
+          return this.with(kw)
 
       ms_timeout: 1000
       absent: {timeout: true, err: 'timeout'}
 
-      with_opt(query_opt) ::
+      with_opt(opt) ::
         if 'number' === typeof opt ::
-          query_opt = {ms_timeout: query_opt}
-        return this.with @:
-          query_opt: @{}
-            __proto__: this.query_opt,
-            ... opt
+          opt = {ms_timeout: opt}
+        return this.with(opt)
 
       async rpc_post(method, ...args) ::
         return this._rpc_v(method, null, args)
