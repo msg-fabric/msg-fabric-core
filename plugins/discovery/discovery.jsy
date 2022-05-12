@@ -7,8 +7,8 @@ export function discovery_plugin(opt={}) ::
   let _lut_discover_fn = @{}
     'function': (accept, fn) => q => accept(q) ? fn(q) : void 0
     'string': (accept, fn) => q => q.key.startsWith(accept) ? fn(q) : void 0
+    'boolean': (k, arg) => k && bind_discover_path(arg)
     'object'(accept, fn) ::
-      as_func(accept.test) // regexp or similar
       if ! fn ::
         as_func(accept.discover)
         fn = q => accept.discover(q)
@@ -21,9 +21,9 @@ export function discovery_plugin(opt={}) ::
     _disco_cache() :: return this.timeouts.hashbelt(opt.ms_rotate || 15000)
     _disco_timeout(resolve) :: return this.timeouts(opt.ms_timeout || 2000, resolve)
 
-    addDiscovery(accept, fn_discover) ::
-      if fn_discover || !is_func(accept) ::
-        accept = _lut_discover_fn[typeof accept](accept, fn_discover)
+    addDiscovery(accept, arg) ::
+      if arg || !is_func(accept) ::
+        accept = _lut_discover_fn[typeof accept](accept, arg)
       this.discovery = [... (this.discovery || []), as_func(accept)]
 
 
@@ -35,7 +35,8 @@ export function discovery_plugin(opt={}) ::
           let fns = this.discovery
           if fns ::
             router_ctx ||= this.router_ctx
-            let query = @{} key: id_route, id_route, kind: 'route', router_ctx
+            let query = @{} __proto__: router_ctx
+              key: id_route, id_route, kind: 'route',
             return await disco_first.cached(this, fns, query)
 
 
@@ -43,6 +44,20 @@ export function discovery_plugin(opt={}) ::
         async discoverTarget(id_target, pktctx) ::
           let fns = this.discovery
           if fns ::
-            let query = @{} key: id_target, id_target, kind: 'target', pktctx
+            let query = @{} __proto__: pktctx
+              key: id_target, id_target, kind: 'target',
             return await disco_first.cached(this, fns, query)
+
+
+export function bind_discover_path(path_sep='.') ::
+  return async query => ::
+    let id_route = query.id_route
+    let i = id_route.lastIndexOf(path_sep)
+    if 0 < i ::
+      let id_fwd = id_route.slice(0,i)
+
+      let fn_route = await query.resolveRoute(id_fwd, true, true)
+      if fn_route ::
+        query.hub_router.addRoute(id_route, fn_route)
+      return fn_route
 
