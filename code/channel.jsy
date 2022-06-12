@@ -131,7 +131,9 @@ export function raw_local_channel({send_pkt, ... chan_ex}) ::
 
 export function local_clone_channel() ::
   // use structuredClone function directly (new in 2021)
-  let [recv, channel] = this.raw_local_channel @:
+  let tid, [recv, channel] = this.raw_local_channel @:
+    ref() :: tid ? _ref(tid) : tid=setInterval(Boolean, 32767)
+    unref() :: _unref(tid)
     async send_pkt(pkt) ::
       await recv @ structuredClone(pkt)
 
