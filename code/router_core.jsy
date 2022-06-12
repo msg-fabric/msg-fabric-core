@@ -14,6 +14,9 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
   const pktctx0 = @{} __proto__: router_ctx,
     // get send_direct() :: return this.channel.send
     redispatch: dispatch_one
+    undeliverable() ::
+      let {channel, pkt} = this
+      return channel && channel.undeliverable(pkt, 'route')
     with_reply(id_reply) ::
       if id_reply ::
         this.reply = id_reply ? this.to(id_reply) : null
@@ -46,8 +49,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
         route = await resolveRoute(id_route, true, true)
 
         if undefined === route ::
-          let channel = pktctx.channel
-          return channel && channel.undeliverable(pkt, 'route')
+          return pktctx.undeliverable()
       catch err ::
         hub_router._on_error @ 'hub_dispatch_one', err, {pkt, pktctx}
 
@@ -79,6 +81,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
       // otherwise send upstream
       await hub_router.upstreamRoute(id_route)
       route = routes_map.get(id_route)
+      if undefined !== route :: return route
 
     return route
 
@@ -113,6 +116,12 @@ export function bindCoreRouterAPI(hub_router, hub, routes_map) ::
         ttl.route = false === opt.ttl_reset ? route
           : route = ttl.with_reset(route)
         return ttl
+
+    aliasRoute(id_route, id_alias=id_route.split(/\W\w+$/)[0]) ::
+      let route = as_func(routes_map.get(id_route))
+      if id_alias ::
+        routes_map.set @ id_alias, route
+        return id_alias
 
     removeRoute(id_route, route) ::
       if 1 === arguments.length ::
