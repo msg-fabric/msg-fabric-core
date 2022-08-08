@@ -91,6 +91,9 @@ export class FabricHub ::
     return this.stream_codec =
       this.bind_codec(codec)
 
+  get codec() ::
+    return this.stream_codec.codec
+
   // --- plugin support ---
 
   livePlugin(... _plugins_) ::
