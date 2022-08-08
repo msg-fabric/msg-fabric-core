@@ -1,5 +1,8 @@
 
 export function websocket_api(hub, plugin_options) ::
+  let _ws_on_data = ab => new Uint8Array(ab)
+  let _ws_on_err = err => null
+
   return @{}
     connectWS(ws_or_wss_url, channel_id) ::
       let websock = ws_or_wss_url.send
@@ -56,8 +59,11 @@ export function websocket_api(hub, plugin_options) ::
         if true === fn_accept(evt) ::
           let data = evt.data
           if data && 'function' === typeof data.arrayBuffer ::
-            data = new Uint8Array @
-              await data.arrayBuffer() // received blob
-          return fn_recv_pkt(data, evt)
+            // received blob
+            data = await data.arrayBuffer()
+              .then @ _ws_on_data, _ws_on_err
+
+          if data ::
+            return fn_recv_pkt(data, evt)
 
       @{} passive: true
