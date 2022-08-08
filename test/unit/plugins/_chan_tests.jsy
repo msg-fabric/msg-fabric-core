@@ -67,7 +67,7 @@ export async function testDoubleSidedChannelConnection(test_api) ::
     1: 'tgt_two'
     body: @{} msg: 'hello two'
 
-  await sleep @ test_api.sleep || 0
+  await sleep @ test_api.sleep || 10
 
   expect(log.calls).to.deep.equal @#
     @[] 'recv [$one$ tgt_one]', @{} msg: 'hello one'
@@ -149,7 +149,7 @@ export async function testSingleSidedChannelConnection(test_api) ::
     1: 'tgt_remote'
     body: @{} msg: 'hello remote'
 
-  await sleep @ test_api.sleep || 0
+  await sleep @ test_api.sleep || 10
 
   expect(log.calls).to.deep.equal @#
     @[] 'recv [$one$ tgt_one]', @{}
