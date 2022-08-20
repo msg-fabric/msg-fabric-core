@@ -49,17 +49,19 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
 
 
 export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
+  let as_id_target = id => id.trim ? id : id[1]
+
+  let expire_fin = 'function' !== typeof FinalizationRegistry ? null :
+    new FinalizationRegistry @\ id_target ::
+      targets_map.delete(id_target)
+
   return @{}
     addTarget
-    hasTarget: id_target => targets_map.has(id_target)
-    getTarget: id_target => targets_map.get(id_target)
+    hasTarget: id => targets_map.has @ as_id_target(id)
+    getTarget: id => targets_map.get @ as_id_target(id)
+    removeTarget: id => targets_map.delete @ as_id_target(id)
 
-    removeTarget: id_target =>
-      targets_map.delete @
-        'string'===typeof id_target
-          ? id_target
-          : id_target[1]
-
+    expireWith
     addDefer_v
     xstream
 
@@ -67,7 +69,8 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
           tgt_router, targets_map,
           id_route, router
 
-  function addTarget(id_target, target, with_remove) ::
+
+  function addTarget(id_target, target) ::
     let id = @[] id_route, id_target || tgt_router.newTargetId()
 
     // .id comaptibility mirroring xstream() return value
@@ -76,6 +79,13 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
     if null != target ::
       targets_map.set @ id[1], as_func(target)
     return id
+
+  function expireWith(id, ...args) ::
+    if ! expire_fin :: return false
+    id = as_id_target(id)
+    for let obj of args ::
+      expire_fin.register(obj, id)
+    return true
 
   function addDefer_v(target=true, inc_pktctx=false, dp=ao_defer_v()) ::
     let id = addTarget @ null,
@@ -87,6 +97,7 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
     if target ::
       p = p.then(true === target ? xpkt_body : target)
 
+    expireWith(id, p)
     return @{}
       id, 0: id[0], 1: id[1],
       promise: p, abort: dp[2]
@@ -95,6 +106,7 @@ export function bindCoreTargetAPI(tgt_router, targets_map, id_route, router) ::
     let {stream, when_done, abort, push} = ao_push_stream(true)
     let id = addTarget(id_target, push)
     tgt_router.removeAfter(id, when_done)
+    expireWith(id, stream)
     return @{} __proto__: xapi,
       id, 0: id[0], 1: id[1],
       stream, abort, when_done, tgt_router
