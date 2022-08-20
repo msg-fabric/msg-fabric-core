@@ -55,7 +55,7 @@ export function bindCoreDispatchRouter(hub_router, hub, routes_map) ::
 
     // No errors may pass -- send all errors to hub_router.on_dispatch_error
     try ::
-      await route(pkt, pktctx)
+      return await route(pkt, pktctx)
     catch err ::
       hub_router.on_dispatch_error @ err, {pkt, pktctx}
     finally ::

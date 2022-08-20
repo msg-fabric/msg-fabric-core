@@ -52,15 +52,32 @@ export async function testDoubleSidedChannelConnection(test_api) ::
   if test_api.during ::
     await test_api.during(hub_a, hub_b)
 
-  await hub_b.send @:
+  let ans_one = await hub_b.send @:
     0: '$one$'
     1: 'tgt_one'
     body: @{} msg: 'hello one'
 
   await sleep @ test_api.sleep || 10
 
+  expect(ans_one).to.be.true
   expect(log.calls).to.deep.equal @#
     @[] 'recv [$one$ tgt_one]', @{} msg: 'hello one'
+
+
+  let cb_one_sent
+  let ans_one_sent = await hub_b.send @
+    '$one$'
+    'tgt_one'
+    @{} msg: 'hello one with sent'
+    @\ sent :: cb_one_sent = sent
+
+  expect(ans_one_sent).to.be.true
+  await sleep @ test_api.sleep || 10
+  expect(cb_one_sent).to.be.true
+
+  expect(log.calls).to.deep.equal @#
+    @[] 'recv [$one$ tgt_one]', @{} msg: 'hello one'
+    @[] 'recv [$one$ tgt_one]', @{} msg: 'hello one with sent'
 
   await hub_a.send @:
     0: '$two$'
@@ -71,6 +88,7 @@ export async function testDoubleSidedChannelConnection(test_api) ::
 
   expect(log.calls).to.deep.equal @#
     @[] 'recv [$one$ tgt_one]', @{} msg: 'hello one'
+    @[] 'recv [$one$ tgt_one]', @{} msg: 'hello one with sent'
     @[] 'recv [$two$ tgt_two]', @{} msg: 'hello two'
 
   log.calls.splice(0, Infinity)

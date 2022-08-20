@@ -66,10 +66,11 @@ export function direct_plugin({p2p, hello}={}) ::
         if null == options :: options = {}
 
         let [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
+        tgt_send = (tgt_send.postMessage || tgt_send.send).bind(tgt_send)
 
         let [recv, channel] = hub.router.send_channel @
-          this.p2p || hub.p2p,
-          (tgt_send.postMessage || tgt_send.send).bind(tgt_send)
+          this.p2p || hub.p2p
+          pkt => @ tgt_send(pkt), true
 
         let subscribe = options.subscribe || _on_msg_evt
         subscribe(tgt_recv, recv)

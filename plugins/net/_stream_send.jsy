@@ -23,7 +23,7 @@ export function bind_sendPacketStream(wstream) ::
   function send_packed(d_pkt) ::
     if null === wstream ::
       // blackhole extra packets
-      return Promise.resolve()
+      return Promise.resolve(false)
 
     d_pkt = Buffer.from(d_pkt)
     let len = d_pkt.byteLength
@@ -38,7 +38,7 @@ export function bind_sendPacketStream(wstream) ::
 
     let s_pkt = Buffer.concat @# pkt_hdr, d_pkt
     if wstream.write(s_pkt) ::
-      return // sent immediate, no backpressure promise
+      return true // sent immediate, no backpressure promise
     // backpressure as promise for next drain event
     return next_drain()
 
@@ -51,6 +51,6 @@ export function bind_sendPacketStream(wstream) ::
   function _drained() ::
     p_drain = null
     if null !== on_drain ::
-      on_drain()
+      on_drain(true)
       on_drain = null
 

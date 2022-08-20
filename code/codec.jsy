@@ -1,4 +1,4 @@
-import { is_array, as_func } from './builtins.jsy'
+import { is_array, as_func, o_defprop } from './builtins.jsy'
 
 export function bind_codec(codec) ::
   // For use with `codec_channel` of 'code/channel.jsy'
@@ -15,7 +15,7 @@ export function bind_codec(codec) ::
     encode_pkt(pkt) ::
       let pkt_data = cache.get(pkt)
       if undefined === pkt_data ::
-        let id_route, id_target, meta, body
+        let id_route, id_target, meta, body, on_sent
         if is_array(pkt) ::
           if 3 === pkt.length ::
             ([ id_route, id_target, body ] = pkt);
@@ -23,10 +23,17 @@ export function bind_codec(codec) ::
             ([ id_route, id_target, meta, body ] = pkt);
 
         else ::
-          ({ 0: id_route, 1: id_target, meta, body } = pkt);
+          ({ 0: id_route, 1: id_target, meta, body, on_sent } = pkt);
 
         pkt_data = codec.encode @#
           id_route, id_target, meta, body
+
+        if on_sent ::
+          if 'string' === typeof pkt_data ::
+            // transform into a string object
+            pkt_data = new String(pkt_data)
+
+          o_defprop @ pkt_data, @{} on_sent: {value: on_sent}
 
         cache.set(pkt, pkt_data)
       return pkt_data

@@ -158,7 +158,7 @@ export default function test_pi_rpc() ::
       @[] 'post m$_three', 102, 103, @[] 'third as post', 22
       @[] 'm$_three', 103, @[] 'third as query', 23
       @[] 'post m$_three', 103, 104, @[] 'third as query', 23
-      @[] 'await results', @[] undefined, 101, undefined, [ 103, 104 ]
+      @[] 'await results', @[] true, 101, true, [ 103, 104 ]
 
   it @ 'Idempotent endpoint (parallel) RPC', @=>> ::
     const id_api = hub.rpc.ep_idempotent @ 'an-api', simple_api
@@ -171,4 +171,4 @@ export default function test_pi_rpc() ::
       @[] 'm$_three', 103, @[] 'third as query', 23
       @[] 'post m$_three', 102, 104, @[] 'third as post', 22
       @[] 'post m$_three', 103, 104, @[] 'third as query', 23
-      @[] 'await results', @[] undefined, 101, undefined, [ 103, 104 ]
+      @[] 'await results', @[] true, 101, true, [ 103, 104 ]

@@ -23,6 +23,7 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
 
     // do not await _target_dispatch so handlers do not block other messages
     _target_dispatch(target, pkt, pktctx)
+    return true
 
 
   async function _target_dispatch(target, pkt, pktctx) ::
@@ -31,7 +32,7 @@ export function bindCoreDispatchTarget(tgt_router, targets_map, id_route, router
       pktctx.tgt_router = tgt_router
 
       // Trigger on_sent for internal hub routing
-      p_then(pkt.on_sent, pkt)
+      p_then(pkt.on_sent, true)
 
       await target(pkt, pktctx)
     catch err ::

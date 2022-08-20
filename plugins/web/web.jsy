@@ -15,11 +15,12 @@ export function web_basic_api(hub, plugin_options) ::
       if null == options :: options = {}
 
       let [tgt_send, tgt_recv] = Array.isArray(tgt) ? tgt : [tgt, tgt]
+      tgt_send = (tgt_send.postMessage || tgt_send.send).bind(tgt_send)
 
       let {codec} = options
       let args = @[]
-        this.p2p || hub.p2p,
-        (tgt_send.postMessage || tgt_send.send).bind(tgt_send),
+        this.p2p || hub.p2p
+        pkt => @ tgt_send(pkt), true
         codec
 
       let [recv, channel] = codec

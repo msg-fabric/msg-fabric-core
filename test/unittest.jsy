@@ -35,6 +35,10 @@ const FabricHubJSON = FabricBaseHub
 const FabricHubCBOR = FabricBaseHub
   .plugin(mfpi_cbor(), ... mfpis)
 
+Object.assign @ globalThis, @{}
+  FabricHubCBOR, FabricHubJSON, FabricBaseHub
+  hub_playground: FabricHubJSON.create()
+
 
 import { _init } from './unit/_setup.jsy'
 _init(FabricHubJSON, FabricHubCBOR)

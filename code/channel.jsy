@@ -74,7 +74,15 @@ export function raw_channel(p2p, unpack, chan_ex) ::
   return @[] recv, channel
 
 
-export function send_channel(p2p, dispatch) ::
+const _as_dispatch_fn = chan_dispatch => @
+  async (pkt, _pkt_sent) => @
+    _pkt_sent = !! await chan_dispatch(pkt)
+    p_then(pkt.on_sent, _pkt_sent)
+    _pkt_sent
+
+
+export function send_channel(p2p, chan_dispatch) ::
+  let dispatch = _as_dispatch_fn(chan_dispatch)
   return this.raw_channel @ p2p, null, @{}
     dispatch
     send: async (...args) =>
@@ -83,8 +91,9 @@ export function send_channel(p2p, dispatch) ::
       dispatch @ await pkt
 
 
-export function codec_channel(p2p, dispatch, {encode_pkt, decode_pkt}) ::
+export function codec_channel(p2p, chan_dispatch, {encode_pkt, decode_pkt}) ::
   // see plugin/standard/json_codec.jsy for a codec implementation
+  let dispatch = _as_dispatch_fn(chan_dispatch)
   return this.raw_channel @ p2p, decode_pkt, @{}
     dispatch: async pkt =>
       dispatch @ await encode_pkt @ pkt
