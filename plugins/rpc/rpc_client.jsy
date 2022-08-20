@@ -1,4 +1,4 @@
-import {as_id} from '../../code/channel.jsy'
+import {as_id} from '../../code/as_pkt.jsy'
 import {rx_rpc} from './rpc_api.jsy'
 import {RPC_Error} from './rpc_error.jsy'
 

@@ -1,5 +1,6 @@
-import { o_assign, o_create, is_array, p_res, _ref, _unref } from './builtins.jsy'
+import { o_assign, o_create, is_array, p_then, p_res, _ref, _unref } from './builtins.jsy'
 import { ao_defer_v } from './timeouts.jsy'
+import { as_send_pkt, pkt_clone } from './as_pkt.jsy'
 
 
 export const local_channel =
@@ -16,10 +17,20 @@ export const base_channel = @{}
   toJSON() :: throw new Error @ 'Not serializable'
   to_cbor_encode() :: throw new Error @ 'Not serializable'
 
-  undeliverable(pkt, mode) ::
-    let {0: id_route, 1: id_target} = pkt
+  warn_undeliverable(pkt, mode) ::
     console.warn @ '~~ undeliverable',
-      @{} mode, id_route, id_target
+      @{} mode, id_route: pkt[0], id_target: pkt[1]
+
+  undeliverable(pkt, mode) ::
+    let dedup = this._undel_seen ??= new Set()
+    let _id = pkt[0]+','+pkt[1]
+    if ! dedup.has(_id) ::
+      dedup.add(_id)
+      this.warn_undeliverable(pkt, mode)
+
+    // Trigger on_sent(false)
+    p_then(pkt.on_sent, false)
+    return false
 
   on_send_error(err) ::
     console.warn @ '~~ channel send error', err
@@ -44,43 +55,6 @@ export const base_channel = @{}
       this.channel_id = channel_id
     return await this
 
-
-export const as_id = id => @
-    'string' === typeof id ? id.split(/[, ]/, 2) // split on comma or space
-  : id && id.id || id || null
-
-export function as_send_pkt(args) ::
-  let id, meta, body, flags
-  switch args.length ::
-    case 0: return
-
-    case 1:
-      id = args[0] // ensure id_route and id_target are strings
-      return {... args[0], 0:`${id[0]}`, 1:`${id[1]}`}
-
-    case 2:
-      // args shape is [[id_route, id_target], body]
-      @ [id, body] = args
-      break
-
-    case 3:
-      if 'string' === typeof args[0] ::
-        // args shape is [id_route, id_target, body]
-        @ [,, body] = id = args
-      else ::
-        // args shape is [[id_route, id_target], meta, body]
-        @ [id, meta, body] = args
-      break
-
-    case 4: case 5:
-      // args shape is [id_route, id_target, meta, body, flags]
-      @ [,, meta,body,flags] = id = args
-      break
-
-    default: throw new TypeError()
-
-  id = as_id(id)
-  return {... flags, 0:`${id[0]}`, 1:`${id[1]}`, body, ... meta && {meta}, }
 
 
 export function raw_channel(p2p, unpack, chan_ex) ::
@@ -134,8 +108,8 @@ export function local_clone_channel() ::
   let tid, [recv, channel] = this.raw_local_channel @:
     ref() :: tid ? _ref(tid) : tid=setInterval(Boolean, 32767)
     unref() :: _unref(tid)
-    async send_pkt(pkt) ::
-      await recv @ structuredClone(pkt)
+    send_pkt: async pkt =>
+      await recv @ pkt_clone(pkt)
 
   return channel
 

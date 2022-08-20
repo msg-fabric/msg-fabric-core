@@ -1,0 +1,53 @@
+import { is_func } from './builtins.jsy'
+
+export const pkt_clone = pkt =>
+  Object.setPrototypeOf @
+    structuredClone(pkt)
+    Object.getPrototypeOf(pkt)
+
+export const as_id = id => @
+    'string' === typeof id ? id.split(/[, ]/, 2) // split on comma or space
+  : id && id.id || id || null
+
+
+export function as_send_pkt(args) ::
+  let id, meta, body, flags
+  let on_sent = is_func(args.at?.(-1)) ? args.pop() : null
+
+  switch args.length ::
+    case 0: return
+
+    case 1:
+      id = args[0] // ensure id_route and id_target are strings
+      return {... args[0], 0:`${id[0]}`, 1:`${id[1]}`}
+
+    case 2:
+      // args shape is [[id_route, id_target], body]
+      @ [id, body] = args
+      break
+
+    case 3:
+      if 'string' === typeof args[0] ::
+        // args shape is [id_route, id_target, body]
+        @ [,, body] = id = args
+      else ::
+        // args shape is [[id_route, id_target], meta, body]
+        @ [id, meta, body] = args
+        flags = @{} meta
+      break
+
+    case 4: case 5:
+      // args shape is [id_route, id_target, meta, body, flags]
+      @ [,, meta,body,flags] = id = args
+      flags = @{} ... flags, meta
+      break
+
+    default: throw new TypeError()
+
+  id = as_id(id)
+  return @{}
+    __proto__: @{} id, on_sent
+    0:`${id[0]}`
+    1:`${id[1]}`
+    ...flags
+    body
