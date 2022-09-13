@@ -25,7 +25,7 @@ export function bind_basic_p2p(hub) ::
         {ms: 250, initial: true},
         () =>
           channel.send @ '', 'hello', @{}
-            version: this.version, id_reply, ts: new Date
+            version: this.version, id_reply, ts: +new Date()
 
       let ans
       try :: ans = await dp[0]
